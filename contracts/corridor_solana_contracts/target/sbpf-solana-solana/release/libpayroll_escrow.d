@@ -1,1 +1,0 @@
-/home/adulam/Desktop/dev/Payday/contracts/payday_solana_contracts/target/sbpf-solana-solana/release/libpayroll_escrow.rlib: /home/adulam/Desktop/dev/Payday/contracts/payday_solana_contracts/programs/payroll_escrow/src/lib.rs

@@ -83,7 +83,7 @@ dist/
 frontend/dist/
 frontend/node_modules/
 frontend/.vite/
-frontend/.cache/
+contracts/corridor_solana_contracts/target/
 
 # OS
 Thumbs.db

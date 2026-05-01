@@ -1,0 +1,36 @@
+{
+    "handle": "contact",
+    "title": "Talk to a human",
+    "icon": "MessageCircle",
+    "description": "Get in touch with our team",
+    "options": [
+        {
+            "icon": "Mail",
+            "title": "Email Us",
+            "description": "Send us an email and we'll respond within 24 hours",
+            "action": "people@corridormoney.net",
+            "actionType": "email"
+        },
+        {
+            "icon": "Calendar",
+            "title": "Schedule a Call",
+            "description": "Book a 30-minute demo with our team",
+            "action": "Schedule Demo",
+            "actionType": "calendar"
+        },
+        {
+            "icon": "MessageSquare",
+            "title": "Live Chat",
+            "description": "Chat with us in real-time during business hours",
+            "action": "Start Chat",
+            "actionType": "chat"
+        },
+        {
+            "icon": "Phone",
+            "title": "Call Us",
+            "description": "Speak directly with our support team",
+            "action": "+254 700 123 456",
+            "actionType": "phone"
+        }
+    ]
+}

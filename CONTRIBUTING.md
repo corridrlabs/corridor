@@ -25,4 +25,3 @@ Thanks for helping improve Corridor.
 - Hidden internal implementation details
 - Unverified product claims
 - Private backend behavior leaking into public docs
-

@@ -1,0 +1,20 @@
+{
+    "short_name": "Corridor",
+    "name": "Corridor Financial OS",
+    "icons": [
+        {
+            "src": "corridor-logo.svg",
+            "sizes": "any",
+            "type": "image/svg+xml"
+        },
+        {
+            "src": "favicon.svg",
+            "sizes": "64x64",
+            "type": "image/svg+xml"
+        }
+    ],
+    "start_url": ".",
+    "display": "standalone",
+    "theme_color": "#2563eb",
+    "background_color": "#ffffff"
+}

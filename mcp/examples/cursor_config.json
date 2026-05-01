@@ -1,0 +1,28 @@
+{
+  "mcp": {
+    "servers": [
+      {
+        "name": "corridor",
+        "command": "/path/to/corridor-mcp",
+        "args": [],
+        "env": {
+          "PAYDAY_API_KEY": "your_api_key_here",
+          "PAYDAY_API_URL": "https://api.corridormoney.net"
+        },
+        "description": "Corridor financial operations and payment processing"
+      }
+    ]
+  },
+  "contextProviders": [
+    {
+      "name": "corridor-financial-context",
+      "type": "mcp",
+      "server": "corridor",
+      "resources": [
+        "corridor://wallets",
+        "corridor://transactions",
+        "corridor://goals"
+      ]
+    }
+  ]
+}

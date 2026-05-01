@@ -1,0 +1,80 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --background: #000000;
+  --surface: #111111;
+  --border: #222222;
+  --primary: #9945FF;
+  --secondary: #14F195;
+  --text-primary: #FFFFFF;
+  --text-secondary: #888888;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  background: var(--background);
+  color: var(--text-primary);
+  font-family: 'Inter', sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Nextra overrides for dark Solana theme */
+.nextra-sidebar {
+  background: var(--surface) !important;
+  border-right: 1px solid var(--border) !important;
+}
+
+.nextra-nav-container {
+  background: var(--background) !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+
+.nextra-toc {
+  border-left: 1px solid var(--border) !important;
+}
+
+/* Code block syntax highlighting - Solana colors */
+pre {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 8px;
+}
+
+code {
+  background: var(--surface) !important;
+  color: var(--secondary) !important;
+}
+
+/* Links */
+a:hover {
+  color: var(--primary) !important;
+}
+
+/* Search */
+.nextra-search input {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-primary) !important;
+}
+
+/* Callout overrides */
+.callout {
+  border-left: 4px solid var(--primary) !important;
+}

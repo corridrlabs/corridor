@@ -1,0 +1,133 @@
+# Earned Wage Access (EWA)
+
+Corridor's EWA system allows employees to access their earned wages before payday.
+
+## Overview
+
+EWA provides:
+- Real-time access to earned but unpaid wages
+- Financial flexibility for employees
+- Seamless integration with HR/payroll systems
+- Automatic repayment on payday
+
+## Enable EWA for Organization
+
+```bash
+curl -X POST /api/ewa/advance-limit \
+  -H "Content-Type: application/json" \
+  -d '{"org_id": "your-org", "advance_limit": 50.0}'
+```
+
+## Import Employees
+
+### CSV Upload
+
+Download the template from the admin dashboard, fill in employee data, then upload.
+
+### API Import
+
+```bash
+curl -X POST /api/ewa/admin/upload-employees \
+  -H "X-Org-ID: your-org" \
+  -F "csv=@employees.csv"
+```
+
+## Employee Flow
+
+### 1. Verify Bank Account
+
+```javascript
+const verifyBank = async (accountNumber, routingNumber) => {
+  const response = await fetch('/api/ewa/employee/verify-bank', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      employee_id: 'current',
+      account_number: accountNumber,
+      routing_number: routingNumber
+    })
+  });
+  return response.json();
+};
+```
+
+### 2. Request Advance
+
+```javascript
+const requestAdvance = async (amount) => {
+  const response = await fetch('/api/ewa/employee/request-advance', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      employee_id: 'current',
+      amount: amount
+    })
+  });
+  return response.json();
+};
+```
+
+### 3. System Validates
+
+- Check earned amount vs. requested amount
+- Verify advance limit compliance
+- Ensure bank account is verified
+- Check for existing outstanding advances
+
+### 4. Disbursement
+
+Advances are automatically disbursed via:
+- ACH transfer to verified bank account
+- Instant payment via Circle/USDC
+- Integration with existing payroll system
+
+## ERP Integrations
+
+### Supported Systems
+
+- **Workday** - Enterprise HR platform
+- **BambooHR** - SMB HR management
+- **ADP** - Payroll and HR services
+
+### Webhook Events
+
+| Event | Description |
+|-------|-------------|
+| `employee_updated` | Employee data changed |
+| `attendance_updated` | Time tracked |
+| `payroll_processed` | Payroll run completed |
+
+## Configuration
+
+### Advance Limits
+
+```javascript
+const advanceLimits = {
+  'entry_level': 25.0,    // 25% of earned wages
+  'experienced': 50.0,      // 50% of earned wages
+  'senior': 75.0            // 75% of earned wages
+};
+```
+
+### Pay Frequencies
+
+- `weekly` - Every 7 days
+- `biweekly` - Every 14 days
+- `monthly` - Once per month
+
+## API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/ewa/employee/earnings` | Get earned amount |
+| POST | `/api/ewa/employee/request-advance` | Request advance |
+| GET | `/api/ewa/employee/history` | Advance history |
+| POST | `/api/ewa/admin/upload-employees` | Bulk import |
+| GET | `/api/ewa/dashboard` | Admin dashboard |
+
+## Security & Compliance
+
+- All employee data encrypted at rest
+- SOC 2 Type II certified infrastructure
+- GDPR compliant data handling
+- State-by-state wage access law compliance

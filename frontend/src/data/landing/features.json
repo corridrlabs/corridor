@@ -1,0 +1,42 @@
+{
+    "handle": "product_os",
+    "title": "Corridor Features",
+    "features": [
+        {
+            "name": "Real-time Monitoring",
+            "enabled": true
+        },
+        {
+            "name": "Custom Workflows",
+            "enabled": true
+        },
+        {
+            "name": "Team Management",
+            "enabled": true
+        },
+        {
+            "name": "API Integration",
+            "enabled": true
+        },
+        {
+            "name": "Webhook Events",
+            "enabled": true
+        },
+        {
+            "name": "Custom Reports",
+            "enabled": true
+        },
+        {
+            "name": "Role-Based Access",
+            "enabled": true
+        },
+        {
+            "name": "Multi-Currency",
+            "enabled": true
+        },
+        {
+            "name": "Audit Logs",
+            "enabled": true
+        }
+    ]
+}

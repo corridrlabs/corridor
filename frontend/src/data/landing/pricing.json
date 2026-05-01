@@ -1,0 +1,59 @@
+{
+    "handle": "pricing",
+    "title": "Pricing",
+    "icon": "DollarSign",
+    "plans": [
+        {
+            "name": "Free",
+            "price": "$0",
+            "period": "/month",
+            "description": "Starter tier for individuals and small teams launching with core wallets and social payments.",
+            "features": [
+                "1 managed wallet",
+                "Payments and social goals",
+                "Community support"
+            ],
+            "cta": "Start Free"
+        },
+        {
+            "name": "Payday Pro",
+            "price": "$29",
+            "period": "/month",
+            "description": "Automation, payouts, API access, and webhooks for growing teams running production payment flows.",
+            "features": [
+                "Up to 3 wallets",
+                "Payouts and EWA",
+                "API keys and webhooks",
+                "Lemon Squeezy billing: monthly, yearly, lifetime"
+            ],
+            "cta": "Upgrade to Pro",
+            "popular": true
+        },
+        {
+            "name": "Premium",
+            "price": "$99",
+            "period": "/month",
+            "description": "Advanced treasury controls and higher-scale operations for teams with complex payout flows.",
+            "features": [
+                "Everything in Payday Pro",
+                "Unlimited wallets",
+                "Treasury automation",
+                "Advanced controls",
+                "Priority support"
+            ],
+            "cta": "Choose Premium"
+        },
+        {
+            "name": "Enterprise",
+            "price": "$299",
+            "period": "/month",
+            "description": "Dedicated support, custom SLA, and high-volume optimization for platform and enterprise rollouts.",
+            "features": [
+                "Dedicated support",
+                "Custom SLA and integrations",
+                "High-volume optimization"
+            ],
+            "cta": "Contact Sales"
+        }
+    ]
+}

@@ -1,0 +1,149 @@
+{
+    "handle": "home",
+    "title": "home.mdx",
+    "icon": "FileText",
+    "hero": {
+        "heading": "Orchestrate your entire payment infrastructure",
+        "highlightText": "payment infrastructure",
+        "description": "We don't just give you APIs—we integrate, orchestrate, and monitor your entire payment ecosystem. Focus on your business while we handle the complexity.",
+        "cta": {
+            "primary": {
+                "text": "Start orchestrating",
+                "action": "/onboarding"
+            },
+            "secondary": {
+                "text": "View documentation",
+                "action": "docs"
+            }
+        }
+    },
+    "sections": [
+        {
+            "type": "connectors",
+            "title": "Connect every rail and launch workflows fast",
+            "connectors": [
+                {
+                    "name": "M-Pesa Collections",
+                    "category": "Mobile Money",
+                    "description": "Realtime STK push and paybill collections with automated settlement.",
+                    "workflows": ["Collections", "Disputes", "Settlement"]
+                },
+                {
+                    "name": "Bank Payouts",
+                    "category": "Fiat Rails",
+                    "description": "Instant and scheduled bank transfers across supported regions.",
+                    "workflows": ["Vendor Payouts", "Payroll", "Refunds"]
+                },
+                {
+                    "name": "USDC On/Off-Ramp",
+                    "category": "Stablecoin",
+                    "description": "Custodial USDC rails across Base, Polygon, Solana, Ethereum.",
+                    "workflows": ["Treasury", "Cross-border", "Savings"]
+                },
+                {
+                    "name": "Slack Alerts",
+                    "category": "Ops",
+                    "description": "Notify finance-ops channels on failures, large payments, and recoveries.",
+                    "workflows": ["Risk alerts", "Recovery", "Approvals"]
+                },
+                {
+                    "name": "Odoo",
+                    "category": "ERP",
+                    "description": "Complete ERP integration with Odoo for accounting, inventory, CRM, and HR management.",
+                    "workflows": ["Journal Sync", "Invoice Sync", "Inventory Management", "CRM Integration", "HR Payroll"]
+                },
+                {
+                    "name": "Accounting Sync",
+                    "category": "ERP",
+                    "description": "Push journals and settlements to QuickBooks and other accounting systems automatically.",
+                    "workflows": ["Journal Sync", "Reconciliation", "Reporting"]
+                },
+                {
+                    "name": "WhatsApp Payments",
+                    "category": "Messaging",
+                    "description": "Chat-first invoices, approvals, and payouts with built-in KYC.",
+                    "workflows": ["Invoices", "Approvals", "Collections"]
+                }
+            ],
+            "workflows": [
+                {
+                    "title": "Borderless wallet & FX",
+                    "description": "Quote, convert, and settle fiat ↔ USDC with treasury controls.",
+                    "channels": ["API", "Dashboard", "WhatsApp"]
+                },
+                {
+                    "title": "Prebuilt revenue ops",
+                    "description": "Subscriptions, invoices, retries, and dunning out of the box.",
+                    "channels": ["API", "Webhooks"]
+                },
+                {
+                    "title": "Collections to payouts",
+                    "description": "Collect from customers then fan-out to vendors or payroll automatically.",
+                    "channels": ["API", "Workflow builder"]
+                },
+                {
+                    "title": "WhatsApp flow",
+                    "description": "Send invoice links, collect KYC, and confirm payment in-chat.",
+                    "channels": ["WhatsApp"]
+                }
+            ]
+        },
+        {
+            "type": "features",
+            "title": "What makes Corridor different",
+            "items": [
+                {
+                    "icon": "Zap",
+                    "color": "blue",
+                    "title": "We Integrate For You",
+                    "description": "No more wrestling with payment APIs. We handle the integration complexity and give you a unified interface."
+                },
+                {
+                    "icon": "Activity",
+                    "color": "purple",
+                    "title": "Orchestrate Everything",
+                    "description": "Create custom workflows, automate processes, and manage your entire payment infrastructure from one dashboard."
+                },
+                {
+                    "icon": "BarChart3",
+                    "color": "orange",
+                    "title": "Monitor & Optimize",
+                    "description": "Real-time analytics, usage tracking, and insights to help you optimize your payment operations."
+                }
+            ]
+        },
+        {
+            "type": "waiting_list",
+            "title": "Join the Corridor waiting list",
+            "subtitle": "Built for fintech infra teams, finance ops, and global payroll. Tell us who you are and what you need—get early access and migration support.",
+            "targetCustomers": [
+                {
+                    "title": "Fintech builders",
+                    "description": "Embed borderless payouts and stablecoin rails."
+                },
+                {
+                    "title": "Finance ops",
+                    "description": "Automate collections, reconciliation, and payouts."
+                },
+                {
+                    "title": "Global payroll",
+                    "description": "Run multi-currency payroll with compliant KYC."
+                }
+            ],
+            "useCases": [
+                {
+                    "title": "Cross-border payouts",
+                    "description": "USDC treasury to local fiat via bank/mobile money."
+                },
+                {
+                    "title": "In-chat payments",
+                    "description": "WhatsApp invoices, approvals, and settlement confirmations."
+                },
+                {
+                    "title": "Workflow automation",
+                    "description": "Retry failed payments, trigger alerts, and keep ledgers in sync."
+                }
+            ]
+        }
+    ]
+}

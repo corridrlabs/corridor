@@ -1,0 +1,198 @@
+{
+    "handle": "docs",
+    "title": "Docs",
+    "icon": "BookOpen",
+    "description": "Everything you need to integrate and use Corridor",
+    "sidebar": {
+        "title": "Documentation",
+        "sections": [
+            {
+                "title": "Getting Started",
+                "items": [
+                    {
+                        "id": "quickstart",
+                        "label": "Quick Start Guide",
+                        "icon": "Rocket"
+                    },
+                    {
+                        "id": "authentication",
+                        "label": "Authentication",
+                        "icon": "Key"
+                    },
+                    {
+                        "id": "first_integration",
+                        "label": "Your First Integration",
+                        "icon": "Plug"
+                    },
+                    {
+                        "id": "sandbox",
+                        "label": "Testing & Sandbox",
+                        "icon": "TestTube"
+                    }
+                ]
+            },
+            {
+                "title": "API Reference",
+                "items": [
+                    {
+                        "id": "api_overview",
+                        "label": "REST API Overview",
+                        "icon": "Code"
+                    },
+                    {
+                        "id": "payments_api",
+                        "label": "Payments API",
+                        "icon": "CreditCard"
+                    },
+                    {
+                        "id": "webhooks_api",
+                        "label": "Webhooks API",
+                        "icon": "Webhook"
+                    },
+                    {
+                        "id": "organizations_api",
+                        "label": "Organizations API",
+                        "icon": "Building"
+                    },
+                    {
+                        "id": "error_handling",
+                        "label": "Error Handling",
+                        "icon": "AlertCircle"
+                    }
+                ]
+            },
+            {
+                "title": "Guides",
+                "items": [
+                    {
+                        "id": "workflows",
+                        "label": "Building Workflows",
+                        "icon": "Workflow"
+                    },
+                    {
+                        "id": "webhooks_setup",
+                        "label": "Setting Up Webhooks",
+                        "icon": "Webhook"
+                    },
+                    {
+                        "id": "team_management",
+                        "label": "Managing Teams",
+                        "icon": "Users"
+                    },
+                    {
+                        "id": "reporting",
+                        "label": "Custom Reporting",
+                        "icon": "FileText"
+                    },
+                    {
+                        "id": "security",
+                        "label": "Security Best Practices",
+                        "icon": "Shield"
+                    }
+                ]
+            },
+            {
+                "title": "SDKs & Libraries",
+                "items": [
+                    {
+                        "id": "javascript_sdk",
+                        "label": "JavaScript/TypeScript SDK",
+                        "icon": "Code"
+                    },
+                    {
+                        "id": "python_sdk",
+                        "label": "Python SDK",
+                        "icon": "Code"
+                    },
+                    {
+                        "id": "go_sdk",
+                        "label": "Go SDK",
+                        "icon": "Code"
+                    },
+                    {
+                        "id": "php_sdk",
+                        "label": "PHP SDK",
+                        "icon": "Code"
+                    },
+                    {
+                        "id": "ruby_sdk",
+                        "label": "Ruby SDK",
+                        "icon": "Code"
+                    }
+                ]
+            }
+        ]
+    },
+    "content": {
+        "quickstart": {
+            "title": "Quick Start Guide",
+            "sections": [
+                {
+                    "heading": "Welcome to Corridor",
+                    "content": "Get up and running with Corridor in minutes. This guide will walk you through creating your account, getting API keys, and making your first payment request."
+                },
+                {
+                    "heading": "Step 1: Create an Account",
+                    "content": "Sign up for a free Corridor account at corridormoney.net/signup. No credit card required for the trial period. You'll get instant access to the dashboard and sandbox environment."
+                },
+                {
+                    "heading": "Step 2: Get Your API Keys",
+                    "content": "Navigate to Settings > API Keys in your dashboard. Generate your first API key and keep it secure. You'll need this for all API requests.",
+                    "code": "# Example API key format\nsk_test_4eC39HqLyjWDarjtT1zdp7dc"
+                },
+                {
+                    "heading": "Step 3: Make Your First Request",
+                    "content": "Use your API key to make a test payment request:",
+                    "code": "curl -X POST https://api.corridormoney.net/v1/payments \\\n  -H 'Authorization: Bearer YOUR_API_KEY' \\\n  -H 'Content-Type: application/json' \\\n  -d '{\n    \"amount\": 1000,\n    \"currency\": \"KES\",\n    \"customer\": \"customer_123\",\n    \"description\": \"Test payment\"\n  }'"
+                },
+                {
+                    "heading": "Next Steps",
+                    "list": [
+                        "Explore the API Reference for detailed endpoint documentation",
+                        "Set up webhooks to receive real-time payment notifications",
+                        "Integrate one of our SDKs for easier development",
+                        "Review security best practices before going live"
+                    ]
+                }
+            ]
+        },
+        "authentication": {
+            "title": "Authentication",
+            "sections": [
+                {
+                    "heading": "API Key Authentication",
+                    "content": "Corridor uses API keys to authenticate requests. Your API keys carry many privileges, so be sure to keep them secure! Do not share your secret API keys in publicly accessible areas such as GitHub, client-side code, and so forth."
+                },
+                {
+                    "heading": "Using Your API Key",
+                    "content": "Authentication to the API is performed via HTTP Bearer Auth. Provide your API key as the bearer token value:",
+                    "code": "Authorization: Bearer YOUR_API_KEY"
+                },
+                {
+                    "heading": "Test vs Live Keys",
+                    "content": "Corridor provides two types of API keys: test keys (starting with sk_test_) for development and live keys (starting with sk_live_) for production. Test keys interact with the sandbox environment and never touch real money."
+                }
+            ]
+        },
+        "payments_api": {
+            "title": "Payments API",
+            "sections": [
+                {
+                    "heading": "Create a Payment",
+                    "content": "Create a new payment by making a POST request to /v1/payments:",
+                    "code": "POST /v1/payments\n\n{\n  \"amount\": 1000,\n  \"currency\": \"KES\",\n  \"customer\": \"customer_123\",\n  \"description\": \"Payment for order #123\",\n  \"metadata\": {\n    \"order_id\": \"123\",\n    \"customer_email\": \"customer@example.com\"\n  }\n}"
+                },
+                {
+                    "heading": "Retrieve a Payment",
+                    "content": "Retrieve the details of a payment that has been previously created:",
+                    "code": "GET /v1/payments/{payment_id}"
+                },
+                {
+                    "heading": "List All Payments",
+                    "content": "Returns a list of payments. The payments are returned sorted by creation date, with the most recent payments appearing first:",
+                    "code": "GET /v1/payments?limit=10&starting_after=payment_123"
+                }
+            ]
+        }
+    }
+}

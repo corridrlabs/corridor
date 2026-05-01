@@ -1,0 +1,934 @@
+openapi: 3.0.3
+info:
+  title: Corridor API
+  description: |
+    Corridor is a Business Orchestration Platform (BOAT) providing payment infrastructure,
+    social payments, crowdfunding goals, and Earned Wage Access (EWA) services.
+    
+    ## Authentication
+    Most endpoints require authentication via Bearer token or API key:
+    - **Bearer Token**: For user-facing applications (login required)
+    - **API Key**: For partner integrations (header: `X-API-Key`)
+    
+    ## Rate Limits
+    - Auth endpoints: 10 requests/minute
+    - Payment endpoints: 100 requests/minute  
+    - Partner API: 1000 requests/minute (with API key)
+  version: 1.0.0
+  contact:
+    email: people@corridormoney.net
+    name: Corridor Support
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.corridormoney.net
+    description: Production
+  - url: https://api-sandbox.corridormoney.net
+    description: Sandbox
+  - url: http://localhost:8000
+    description: Local Development
+
+tags:
+  - name: Authentication
+    description: User authentication and account management
+  - name: Social Goals
+    description: Crowdfunding goals for social groups
+  - name: Social Payments
+    description: Peer-to-peer payments and requests
+  - name: Wallets
+    description: Multi-currency wallet management
+  - name: EWA
+    description: Earned Wage Access services
+  - name: Invoices
+    description: Invoice creation and payment
+  - name: Partner API
+    description: Endpoints for partner integrations
+
+paths:
+  /api/auth/register:
+    post:
+      tags: [Authentication]
+      summary: Register a new user
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '200':
+          description: Registration successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Invalid request
+        '409':
+          description: User already exists
+
+  /api/auth/login:
+    post:
+      tags: [Authentication]
+      summary: Login with email and password
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid credentials
+
+  /api/auth/me:
+    get:
+      tags: [Authentication]
+      summary: Get current user info
+      operationId: getMe
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        '401':
+          description: Unauthorized
+
+  /api/auth/verify/send:
+    post:
+      tags: [Authentication]
+      summary: Send verification code
+      operationId: sendVerificationCode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [channel, contact]
+              properties:
+                channel:
+                  type: string
+                  enum: [email, whatsapp]
+                contact:
+                  type: string
+                  description: Email address or phone number
+      responses:
+        '200':
+          description: Code sent
+        '429':
+          description: Rate limit exceeded
+
+  /api/auth/verify/confirm:
+    post:
+      tags: [Authentication]
+      summary: Verify code
+      operationId: verifyCode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [contact, code]
+              properties:
+                contact:
+                  type: string
+                code:
+                  type: string
+      responses:
+        '200':
+          description: Verification result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+
+  /api/social/goals:
+    get:
+      tags: [Social Goals]
+      summary: List user's crowdfunding goals
+      operationId: getSocialGoals
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      responses:
+        '200':
+          description: List of goals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SocialGoal'
+    post:
+      tags: [Social Goals]
+      summary: Create a new crowdfunding goal
+      operationId: createSocialGoal
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateGoalRequest'
+      responses:
+        '201':
+          description: Goal created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SocialGoal'
+
+  /api/social/goals/link:
+    get:
+      tags: [Social Goals]
+      summary: Get goal by share link
+      operationId: getSocialGoalByLink
+      parameters:
+        - name: link
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Goal details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SocialGoal'
+        '404':
+          description: Goal not found
+
+  /api/social/goals/contribute:
+    post:
+      tags: [Social Goals]
+      summary: Contribute to a goal
+      operationId: contributeToGoal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContributeRequest'
+      responses:
+        '200':
+          description: Contribution recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GoalContribution'
+
+  /api/social/goals/eject:
+    post:
+      tags: [Social Goals]
+      summary: Withdraw funds from a goal
+      operationId: ejectGoalFunds
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [goal_id]
+              properties:
+                goal_id:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Funds ejected
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /api/social/feed:
+    get:
+      tags: [Social Payments]
+      summary: Get public transaction feed
+      operationId: getFeed
+      responses:
+        '200':
+          description: Transaction feed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Transaction'
+
+  /api/social/pay:
+    post:
+      tags: [Social Payments]
+      summary: Send a social payment
+      operationId: createSocialPayment
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SocialPaymentRequest'
+      responses:
+        '200':
+          description: Payment sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+
+  /api/wallets:
+    get:
+      tags: [Wallets]
+      summary: List user's wallets
+      operationId: getWallets
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      responses:
+        '200':
+          description: List of wallets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Wallet'
+    post:
+      tags: [Wallets]
+      summary: Create a new wallet
+      operationId: createWallet
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [currency]
+              properties:
+                currency:
+                  type: string
+                  enum: [USDC, USD, KES, NGN, SOL]
+      responses:
+        '201':
+          description: Wallet created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Wallet'
+
+  /api/fund-wallet:
+    post:
+      tags: [Wallets]
+      summary: Fund a wallet
+      operationId: fundWallet
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [wallet_id, amount, method]
+              properties:
+                wallet_id:
+                  type: string
+                  format: uuid
+                amount:
+                  type: number
+                method:
+                  type: string
+                  enum: [card, crypto, mpesa]
+      responses:
+        '200':
+          description: Funding initiated
+
+  /api/account/ewa/settings:
+    get:
+      tags: [EWA]
+      summary: Get EWA settings
+      operationId: getEWASettings
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      responses:
+        '200':
+          description: EWA settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EWASettings'
+    post:
+      tags: [EWA]
+      summary: Update EWA settings
+      operationId: updateEWASettings
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EWASettings'
+      responses:
+        '200':
+          description: Settings updated
+
+  /api/account/ewa/requests:
+    get:
+      tags: [EWA]
+      summary: List EWA requests
+      operationId: getEWARequests
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      responses:
+        '200':
+          description: List of requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EWARequest'
+    post:
+      tags: [EWA]
+      summary: Request an EWA withdrawal
+      operationId: requestEWA
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [amount]
+              properties:
+                amount:
+                  type: number
+      responses:
+        '200':
+          description: Request created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EWARequest'
+
+  /api/invoices:
+    get:
+      tags: [Invoices]
+      summary: List invoices
+      operationId: getInvoices
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      responses:
+        '200':
+          description: List of invoices
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Invoice'
+    post:
+      tags: [Invoices]
+      summary: Create an invoice
+      operationId: createInvoice
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateInvoiceRequest'
+      responses:
+        '201':
+          description: Invoice created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+
+  /api/api-keys:
+    get:
+      tags: [Partner API]
+      summary: List API keys
+      operationId: listAPIKeys
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of API keys
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/APIKey'
+    post:
+      tags: [Partner API]
+      summary: Create a new API key
+      operationId: createAPIKey
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                permissions:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '201':
+          description: API key created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIKey'
+
+  /api/api-keys/revoke:
+    post:
+      tags: [Partner API]
+      summary: Revoke an API key
+      operationId: revokeAPIKey
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [key_id]
+              properties:
+                key_id:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Key revoked
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+
+  schemas:
+    RegisterRequest:
+      type: object
+      required: [email, name, password, type]
+      properties:
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        password:
+          type: string
+          minLength: 8
+        type:
+          type: string
+          enum: [PERSONAL, BUSINESS]
+        phone:
+          type: string
+        country:
+          type: string
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    AuthResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+        token_type:
+          type: string
+        user:
+          $ref: '#/components/schemas/Account'
+
+    Account:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+        full_name:
+          type: string
+        account_type:
+          type: string
+          enum: [PERSONAL, BUSINESS]
+        country:
+          type: string
+        kyc_status:
+          type: string
+        onboarding_completed:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    SocialGoal:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        account_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        target_amount:
+          type: number
+        current_amount:
+          type: number
+        currency:
+          type: string
+        product_link:
+          type: string
+        share_link:
+          type: string
+        status:
+          type: string
+          enum: [ACTIVE, COMPLETED, CANCELLED, EXPIRED]
+        created_at:
+          type: string
+          format: date-time
+
+    CreateGoalRequest:
+      type: object
+      required: [title, target_amount, currency]
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        target_amount:
+          type: number
+        currency:
+          type: string
+          enum: [USDC, USD, KES, NGN]
+        product_link:
+          type: string
+
+    ContributeRequest:
+      type: object
+      required: [goal_id, amount, currency]
+      properties:
+        goal_id:
+          type: string
+          format: uuid
+        contributor_name:
+          type: string
+          default: Anonymous
+        amount:
+          type: number
+        currency:
+          type: string
+
+    GoalContribution:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        goal_id:
+          type: string
+          format: uuid
+        contributor_name:
+          type: string
+        amount:
+          type: number
+        currency:
+          type: string
+        transaction_id:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        sender_wallet_id:
+          type: string
+          format: uuid
+        recipient_wallet_id:
+          type: string
+          format: uuid
+        amount:
+          type: number
+        currency:
+          type: string
+        status:
+          type: string
+        message:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    SocialPaymentRequest:
+      type: object
+      required: [amount]
+      properties:
+        from_wallet:
+          type: string
+          format: uuid
+        to_wallet:
+          type: string
+          format: uuid
+        to_email:
+          type: string
+        to_handle:
+          type: string
+        amount:
+          type: number
+        currency:
+          type: string
+        message:
+          type: string
+
+    Wallet:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        account_id:
+          type: string
+          format: uuid
+        currency:
+          type: string
+        balance:
+          type: number
+        address:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    EWASettings:
+      type: object
+      properties:
+        is_enabled:
+          type: boolean
+        percentage_accessible:
+          type: number
+          description: Percentage of earned wages accessible (0-1)
+        max_withdrawal_per_period:
+          type: number
+        transaction_fee:
+          type: number
+        cooldown_period_days:
+          type: integer
+
+    EWARequest:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        employee_id:
+          type: string
+          format: uuid
+        amount_requested:
+          type: number
+        status:
+          type: string
+          enum: [PENDING, APPROVED, DISBURSED, REJECTED]
+        created_at:
+          type: string
+          format: date-time
+
+    Invoice:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        account_id:
+          type: string
+          format: uuid
+        customer_id:
+          type: string
+          format: uuid
+        amount:
+          type: number
+        currency:
+          type: string
+        status:
+          type: string
+        due_date:
+          type: string
+          format: date
+        created_at:
+          type: string
+          format: date-time
+
+    CreateInvoiceRequest:
+      type: object
+      required: [customer_id, amount, currency]
+      properties:
+        customer_id:
+          type: string
+          format: uuid
+        amount:
+          type: number
+        currency:
+          type: string
+        due_date:
+          type: string
+          format: date
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              description:
+                type: string
+              quantity:
+                type: integer
+              unit_price:
+                type: number
+
+    APIKey:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        key_prefix:
+          type: string
+          description: First 8 characters of the key
+        permissions:
+          type: array
+          items:
+            type: string
+        created_at:
+          type: string
+          format: date-time
+        last_used_at:
+          type: string
+          format: date-time
+  /api/notifications:
+    get:
+      tags: [Notifications]
+      summary: Get web notifications
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id: {type: string, format: uuid}
+                    title: {type: string}
+                    message: {type: string}
+                    created_at: {type: string, format: date-time}
+  /api/invoices/detail:
+    get:
+      tags: [Invoices]
+      summary: Get invoice details
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200':
+          description: Invoice details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+  /api/customers/detail:
+    get:
+      tags: [Customers]
+      summary: Get customer details
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200':
+          description: Customer details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'

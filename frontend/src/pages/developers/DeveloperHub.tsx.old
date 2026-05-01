@@ -1,0 +1,877 @@
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import {
+    Key, Webhook, Box, BookOpen, Bot, Plus, Copy, Check, Trash2,
+    ExternalLink, Play, RefreshCw, Eye, EyeOff, AlertTriangle,
+    Terminal, Zap, Shield, Code2, Globe, Activity, ChevronDown,
+    ChevronRight, Loader2, X, CheckCircle2, XCircle, Lock, Unlock
+} from 'lucide-react';
+import { accountApi } from '../../api/account';
+import api from '../../services/api';
+import { useToast } from '../../contexts/ToastContext';
+import { API_BASE_URL } from '../../config/env';
+
+// ─── Shared types ─────────────────────────────────────────────────────────────
+interface ApiKey {
+    id: string;
+    prefix: string;
+    name?: string;
+    is_active: boolean;
+    is_live: boolean;
+    created_at: string;
+    last_used_at?: string;
+    key?: string;
+}
+
+interface Webhook {
+    id: string;
+    url: string;
+    events: string[];
+    is_active: boolean;
+    created_at: string;
+    secret?: string;
+}
+
+type DevTab = 'keys' | 'webhooks' | 'sandbox' | 'docs' | 'mcp';
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+const useCopy = (timeout = 2000) => {
+    const [copiedId, setCopied] = useState<string | null>(null);
+    const copy = (text: string, id: string) => {
+        navigator.clipboard.writeText(text).catch(() => {});
+        setCopied(id);
+        setTimeout(() => setCopied(null), timeout);
+    };
+    return { copied: copiedId, copy };
+};
+
+const methodBadge = (m: string) => ({
+    GET:    'bg-emerald-100 text-emerald-700',
+    POST:   'bg-blue-100 text-blue-700',
+    PUT:    'bg-amber-100 text-amber-700',
+    DELETE: 'bg-red-100 text-red-700',
+    PATCH:  'bg-purple-100 text-purple-700',
+}[m] ?? 'bg-slate-100 text-slate-700');
+
+// ─── ALL_ENDPOINTS ────────────────────────────────────────────────────────────
+const ALL_ENDPOINTS = [
+    { group: 'Auth', method: 'GET',  path: '/api/auth/me',          desc: 'Get current authenticated user profile', body: null },
+    { group: 'Auth', method: 'POST', path: '/api/auth/login',        desc: 'Authenticate user and get JWT token', body: { email: 'user@example.com', password: 'password' } },
+    { group: 'Wallets', method: 'GET',  path: '/api/wallets',        desc: 'List all wallets and balances', body: null },
+    { group: 'Payments', method: 'POST', path: '/api/send',          desc: 'Send a payment to another wallet', body: { recipient_identifier: 'user@example.com', amount: 10, currency: 'USD', message: 'Test payment' } },
+    { group: 'Invoices', method: 'GET',  path: '/api/invoices',      desc: 'List all invoices', body: null },
+    { group: 'Invoices', method: 'POST', path: '/api/invoices',      desc: 'Create a new invoice', body: { customer_id: 'CUSTOMER_UUID', currency: 'USD', items: [{ description: 'Service', qty: 1, unit_price: 100 }], due_date: '2025-12-31T00:00:00Z' } },
+    { group: 'Social Goals', method: 'GET',  path: '/api/social/goals', desc: 'List your social goals', body: null },
+    { group: 'Social Goals', method: 'POST', path: '/api/social/goals', desc: 'Create a crowdfunding goal', body: { title: 'Team Retreat', description: 'Raise funds for team retreat', target_amount: 1000, currency: 'USD' } },
+    { group: 'Employees', method: 'GET',  path: '/api/employees',    desc: 'List all payroll employees', body: null },
+    { group: 'Employees', method: 'POST', path: '/api/employees',    desc: 'Add an employee to payroll', body: { full_name: 'Jane Doe', email: 'jane@company.com', gross_salary: 1500, currency: 'USD', pay_day_of_month: 28 } },
+    { group: 'Payroll', method: 'POST',  path: '/api/payroll/run',   desc: 'Run payroll for selected employees', body: { employee_ids: ['EMPLOYEE_UUID'] } },
+    { group: 'API Keys', method: 'GET',  path: '/api/api-keys',      desc: 'List your API keys', body: null },
+    { group: 'API Keys', method: 'POST', path: '/api/api-keys',      desc: 'Create a new API key', body: { name: 'Production Key', is_live: false } },
+    { group: 'Webhooks', method: 'GET',  path: '/api/webhooks',      desc: 'List your webhook endpoints', body: null },
+    { group: 'Webhooks', method: 'POST', path: '/api/webhooks',      desc: 'Register a webhook endpoint', body: { url: 'https://yourapp.com/webhooks/corridor', events: ['payment.success', 'payment.failed'] } },
+];
+
+const WEBHOOK_EVENTS = [
+    { value: 'payment.success', label: 'Payment Success', desc: 'Fires when a payment is completed' },
+    { value: 'payment.failed',  label: 'Payment Failed',  desc: 'Fires when a payment fails' },
+    { value: 'payment.pending', label: 'Payment Pending', desc: 'Fires when a payment is queued' },
+    { value: 'invoice.paid',    label: 'Invoice Paid',    desc: 'Fires when an invoice is settled' },
+    { value: 'ewa.requested',   label: 'EWA Requested',   desc: 'Fires when an employee requests an advance' },
+    { value: 'kyc.approved',    label: 'KYC Approved',    desc: 'Fires when a KYC submission is reviewed' },
+    { value: 'goal.funded',     label: 'Goal Funded',     desc: 'Fires when a social goal reaches its target' },
+];
+
+// ─── TAB: API KEYS ──────────────────────────────────────────────────────────
+const ApiKeysTab: React.FC = () => {
+    const { showToast } = useToast();
+    const { copied, copy } = useCopy();
+    const [keys, setKeys] = useState<ApiKey[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [showModal, setShowModal] = useState(false);
+    const [form, setForm] = useState({ name: '', is_live: false });
+    const [saving, setSaving] = useState(false);
+    const [createdKey, setCreatedKey] = useState<string | null>(null);
+    const [revealedId, setRevealedId] = useState<string | null>(null);
+
+    const load = useCallback(async () => {
+        setLoading(true);
+        try { setKeys(await accountApi.getApiKeys()); } catch { setKeys([]); } finally { setLoading(false); }
+    }, []);
+
+    useEffect(() => { load(); }, [load]);
+
+    const create = async () => {
+        if (!form.name) { showToast('error', 'Key name is required'); return; }
+        setSaving(true);
+        try {
+            const res = await accountApi.createApiKey(form);
+            setCreatedKey(res?.key || null);
+            setKeys(prev => [...prev, res]);
+            showToast('success', 'API key created — save it now!');
+        } catch (e: any) {
+            showToast('error', e?.response?.data?.error || 'Failed to create key');
+        } finally { setSaving(false); }
+    };
+
+    const revoke = async (id: string, name?: string) => {
+        if (!confirm(`Revoke key "${name || id}"? This cannot be undone.`)) return;
+        try {
+            await accountApi.revokeApiKey(id);
+            setKeys(prev => prev.filter(k => k.id !== id));
+            showToast('success', 'Key revoked');
+        } catch { showToast('error', 'Failed to revoke key'); }
+    };
+
+    return (
+        <div className="space-y-6">
+            <div className="flex items-center justify-between">
+                <div>
+                    <h2 className="text-xl font-bold text-slate-900">API Keys</h2>
+                    <p className="text-sm text-slate-500 mt-0.5">Authenticate requests to the Corridor API with secret keys.</p>
+                </div>
+                <button onClick={() => { setCreatedKey(null); setForm({ name: '', is_live: false }); setShowModal(true); }}
+                    className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white text-sm font-bold rounded-xl hover:bg-slate-700 transition-all shadow-sm">
+                    <Plus size={15} /> Create Key
+                </button>
+            </div>
+
+            {/* Security notice */}
+            <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-2xl">
+                <Shield size={16} className="text-amber-500 flex-shrink-0 mt-0.5" />
+                <div className="text-xs text-amber-700">
+                    <strong>Keep your secret keys secure.</strong> Do not share them publicly or commit to version control. Rotate keys regularly and use test keys in development.
+                </div>
+            </div>
+
+            {loading ? (
+                <div className="flex items-center justify-center py-12 text-slate-400"><Loader2 size={24} className="animate-spin mr-3" /> Loading keys...</div>
+            ) : keys.length === 0 ? (
+                <div className="border-2 border-dashed border-slate-200 rounded-2xl p-12 text-center">
+                    <Key size={32} className="mx-auto text-slate-300 mb-3" />
+                    <p className="font-bold text-slate-700 mb-1">No API keys yet</p>
+                    <p className="text-sm text-slate-400 mb-5">Create a key to start making authenticated requests</p>
+                    <button onClick={() => setShowModal(true)} className="px-5 py-2 bg-slate-900 text-white text-sm font-bold rounded-xl hover:bg-slate-700">
+                        Create First Key
+                    </button>
+                </div>
+            ) : (
+                <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+                    <table className="w-full text-sm">
+                        <thead className="bg-slate-50 border-b border-slate-100">
+                            <tr>
+                                {['Name', 'Key prefix', 'Mode', 'Created', 'Last used', ''].map(h => (
+                                    <th key={h} className="px-5 py-3 text-left text-xs font-black text-slate-400 uppercase tracking-widest">{h}</th>
+                                ))}
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-50">
+                            {keys.map(k => (
+                                <tr key={k.id} className="hover:bg-slate-50/60 transition-colors">
+                                    <td className="px-5 py-4 font-semibold text-slate-800">{k.name || 'Unnamed'}</td>
+                                    <td className="px-5 py-4">
+                                        <div className="flex items-center gap-2">
+                                            <code className="font-mono text-slate-600 bg-slate-100 px-2 py-0.5 rounded text-xs">
+                                                {revealedId === k.id ? k.prefix : `${k.prefix.slice(0, 8)}••••••••`}
+                                            </code>
+                                            <button onClick={() => setRevealedId(revealedId === k.id ? null : k.id)}
+                                                className="text-slate-400 hover:text-slate-600 transition-colors">
+                                                {revealedId === k.id ? <EyeOff size={13} /> : <Eye size={13} />}
+                                            </button>
+                                            <button onClick={() => copy(k.prefix, k.id)} className="text-slate-400 hover:text-blue-600 transition-colors">
+                                                {copied === k.id ? <Check size={13} className="text-green-500" /> : <Copy size={13} />}
+                                            </button>
+                                        </div>
+                                    </td>
+                                    <td className="px-5 py-4">
+                                        <span className={`text-xs font-bold px-2 py-1 rounded-full ${k.is_live ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-500'}`}>
+                                            {k.is_live ? '🔴 Live' : '⚫ Test'}
+                                        </span>
+                                    </td>
+                                    <td className="px-5 py-4 text-slate-400">{new Date(k.created_at).toLocaleDateString()}</td>
+                                    <td className="px-5 py-4 text-slate-400">{k.last_used_at ? new Date(k.last_used_at).toLocaleDateString() : 'Never'}</td>
+                                    <td className="px-5 py-4 text-right">
+                                        <button onClick={() => revoke(k.id, k.name)} className="text-slate-300 hover:text-red-600 transition-colors p-1 rounded">
+                                            <Trash2 size={15} />
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+
+            {/* Create Key Modal */}
+            {showModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => { setShowModal(false); setCreatedKey(null); }} />
+                    <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 z-10 animate-in fade-in zoom-in-95 duration-200">
+                        <button onClick={() => { setShowModal(false); setCreatedKey(null); }}
+                            className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100 transition-colors">
+                            <X size={18} />
+                        </button>
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center">
+                                <Key size={18} className="text-white" />
+                            </div>
+                            <div>
+                                <h3 className="font-black text-slate-900">Create API Key</h3>
+                                <p className="text-xs text-slate-400">New key for Corridor API access</p>
+                            </div>
+                        </div>
+
+                        {createdKey ? (
+                            <div className="space-y-4">
+                                <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-2xl">
+                                    <AlertTriangle size={18} className="text-amber-500 flex-shrink-0 mt-0.5" />
+                                    <p className="text-sm text-amber-800 font-semibold">Save this key now — you won't see it again!</p>
+                                </div>
+                                <div className="flex items-center gap-2 bg-slate-900 p-4 rounded-xl">
+                                    <code className="flex-1 text-xs text-green-400 font-mono break-all">{createdKey}</code>
+                                    <button onClick={() => copy(createdKey, 'new')} className="text-slate-400 hover:text-white flex-shrink-0 transition-colors">
+                                        {copied === 'new' ? <Check size={18} className="text-green-400" /> : <Copy size={18} />}
+                                    </button>
+                                </div>
+                                <button onClick={() => { setShowModal(false); setCreatedKey(null); }}
+                                    className="w-full py-2.5 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-700 transition-all">
+                                    Done
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="space-y-5">
+                                <div>
+                                    <label className="text-xs font-black text-slate-500 uppercase tracking-wider mb-1 block">Key Name *</label>
+                                    <input value={form.name} onChange={e => setForm(f => ({...f, name: e.target.value}))}
+                                        placeholder="e.g. Production Backend"
+                                        className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent" />
+                                </div>
+                                <label className="flex items-center gap-3 p-4 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">
+                                    <input type="checkbox" checked={form.is_live} onChange={e => setForm(f => ({...f, is_live: e.target.checked}))}
+                                        className="w-4 h-4 accent-red-600" />
+                                    <div>
+                                        <p className="text-sm font-bold text-slate-800">🔴 Live Mode</p>
+                                        <p className="text-xs text-slate-400">Real transactions. Use only in production.</p>
+                                    </div>
+                                </label>
+                                <div className="flex gap-3 pt-2">
+                                    <button onClick={() => setShowModal(false)} className="flex-1 py-2.5 border border-slate-200 text-slate-700 text-sm font-semibold rounded-xl hover:bg-slate-50">Cancel</button>
+                                    <button onClick={create} disabled={saving} className="flex-1 py-2.5 bg-slate-900 text-white text-sm font-bold rounded-xl hover:bg-slate-700 disabled:opacity-60 flex items-center justify-center gap-2">
+                                        {saving ? <Loader2 size={15} className="animate-spin" /> : null} Create Key
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+// ─── TAB: WEBHOOKS ────────────────────────────────────────────────────────────
+const WebhooksTab: React.FC = () => {
+    const { showToast } = useToast();
+    const { copied, copy } = useCopy();
+    const [webhooks, setWebhooks] = useState<Webhook[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [showModal, setShowModal] = useState(false);
+    const [form, setForm] = useState({ url: '', events: ['payment.success', 'payment.failed'] });
+    const [saving, setSaving] = useState(false);
+    const [createdSecret, setCreatedSecret] = useState<string | null>(null);
+
+    const load = useCallback(async () => {
+        setLoading(true);
+        try { setWebhooks(await accountApi.getWebhooks()); } catch { setWebhooks([]); } finally { setLoading(false); }
+    }, []);
+
+    useEffect(() => { load(); }, [load]);
+
+    const toggleEvent = (ev: string) =>
+        setForm(f => ({
+            ...f,
+            events: f.events.includes(ev) ? f.events.filter(e => e !== ev) : [...f.events, ev]
+        }));
+
+    const create = async () => {
+        if (!form.url) { showToast('error', 'Webhook URL is required'); return; }
+        if (!form.url.startsWith('https://')) { showToast('error', 'Webhook URL must use HTTPS'); return; }
+        if (form.events.length === 0) { showToast('error', 'Select at least one event'); return; }
+        setSaving(true);
+        try {
+            const res = await accountApi.createWebhook(form);
+            setCreatedSecret(res?.secret || null);
+            setWebhooks(prev => [...prev, res]);
+            showToast('success', 'Webhook registered!');
+        } catch (e: any) {
+            showToast('error', e?.response?.data?.error || 'Failed to register webhook');
+        } finally { setSaving(false); }
+    };
+
+    const remove = async (id: string) => {
+        if (!confirm('Remove this webhook endpoint?')) return;
+        try {
+            await accountApi.deleteWebhook(id);
+            setWebhooks(prev => prev.filter(w => w.id !== id));
+            showToast('success', 'Webhook removed');
+        } catch { showToast('error', 'Failed to remove webhook'); }
+    };
+
+    return (
+        <div className="space-y-6">
+            <div className="flex items-center justify-between">
+                <div>
+                    <h2 className="text-xl font-bold text-slate-900">Webhooks</h2>
+                    <p className="text-sm text-slate-500 mt-0.5">Receive real-time event notifications to your server via HTTP POST.</p>
+                </div>
+                <button onClick={() => { setCreatedSecret(null); setForm({ url: '', events: ['payment.success', 'payment.failed'] }); setShowModal(true); }}
+                    className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white text-sm font-bold rounded-xl hover:bg-slate-700 transition-all shadow-sm">
+                    <Plus size={15} /> Add Endpoint
+                </button>
+            </div>
+
+            {loading ? (
+                <div className="flex items-center justify-center py-12 text-slate-400"><Loader2 size={24} className="animate-spin mr-3" /> Loading webhooks...</div>
+            ) : webhooks.length === 0 ? (
+                <div className="border-2 border-dashed border-slate-200 rounded-2xl p-12 text-center">
+                    <Globe size={32} className="mx-auto text-slate-300 mb-3" />
+                    <p className="font-bold text-slate-700 mb-1">No webhook endpoints</p>
+                    <p className="text-sm text-slate-400 mb-5">Add an HTTPS endpoint to receive live event notifications</p>
+                    <button onClick={() => setShowModal(true)} className="px-5 py-2 bg-slate-900 text-white text-sm font-bold rounded-xl hover:bg-slate-700">
+                        Add First Endpoint
+                    </button>
+                </div>
+            ) : (
+                <div className="space-y-3">
+                    {webhooks.map(wh => (
+                        <div key={wh.id} className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm hover:shadow-md transition-shadow">
+                            <div className="flex items-start justify-between">
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <span className={`w-2 h-2 rounded-full flex-shrink-0 ${wh.is_active ? 'bg-green-500' : 'bg-slate-300'}`} />
+                                        <a href={wh.url} target="_blank" rel="noopener noreferrer"
+                                            className="font-mono text-sm text-blue-600 hover:underline truncate">{wh.url}</a>
+                                        <ExternalLink size={12} className="text-slate-400 flex-shrink-0" />
+                                    </div>
+                                    <div className="flex flex-wrap gap-1.5 mb-3">
+                                        {wh.events.map(ev => (
+                                            <span key={ev} className="text-xs px-2 py-0.5 bg-blue-50 text-blue-700 font-medium rounded-full border border-blue-100">{ev}</span>
+                                        ))}
+                                    </div>
+                                    <p className="text-xs text-slate-400">Registered {new Date(wh.created_at).toLocaleDateString()}</p>
+                                </div>
+                                <button onClick={() => remove(wh.id)} className="text-slate-300 hover:text-red-600 transition-colors p-1.5 rounded-lg hover:bg-red-50 ml-3 flex-shrink-0">
+                                    <Trash2 size={15} />
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {/* Add Webhook Modal */}
+            {showModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => { setShowModal(false); setCreatedSecret(null); }} />
+                    <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg p-8 z-10 animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+                        <button onClick={() => { setShowModal(false); setCreatedSecret(null); }}
+                            className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100 transition-colors">
+                            <X size={18} />
+                        </button>
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center">
+                                <Globe size={18} className="text-white" />
+                            </div>
+                            <div>
+                                <h3 className="font-black text-slate-900">Add Webhook</h3>
+                                <p className="text-xs text-slate-400">Register an HTTPS endpoint for events</p>
+                            </div>
+                        </div>
+
+                        {createdSecret ? (
+                            <div className="space-y-4">
+                                <div className="flex items-start gap-3 p-4 bg-green-50 border border-green-200 rounded-2xl">
+                                    <CheckCircle2 size={18} className="text-green-500 flex-shrink-0 mt-0.5" />
+                                    <p className="text-sm text-green-700 font-semibold">Webhook registered! Save this signing secret to verify payloads.</p>
+                                </div>
+                                <div>
+                                    <label className="text-xs font-black text-slate-500 uppercase tracking-wider mb-1 block">Signing Secret (shown once)</label>
+                                    <div className="flex items-center gap-2 bg-slate-900 p-4 rounded-xl">
+                                        <code className="flex-1 text-xs text-emerald-400 font-mono break-all">{createdSecret}</code>
+                                        <button onClick={() => copy(createdSecret, 'secret')} className="text-slate-400 hover:text-white flex-shrink-0">
+                                            {copied === 'secret' ? <Check size={16} className="text-green-400" /> : <Copy size={16} />}
+                                        </button>
+                                    </div>
+                                </div>
+                                <button onClick={() => { setShowModal(false); setCreatedSecret(null); }}
+                                    className="w-full py-2.5 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-700">Done</button>
+                            </div>
+                        ) : (
+                            <div className="space-y-5">
+                                <div>
+                                    <label className="text-xs font-black text-slate-500 uppercase tracking-wider mb-1 block">Endpoint URL *</label>
+                                    <input value={form.url} onChange={e => setForm(f => ({...f, url: e.target.value}))}
+                                        placeholder="https://yourapp.com/webhooks/corridor" type="url"
+                                        className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent font-mono" />
+                                </div>
+                                <div>
+                                    <label className="text-xs font-black text-slate-500 uppercase tracking-wider mb-3 block">Events to subscribe</label>
+                                    <div className="space-y-2">
+                                        {WEBHOOK_EVENTS.map(ev => (
+                                            <label key={ev.value} className="flex items-center gap-3 p-3 border border-slate-100 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">
+                                                <input type="checkbox" checked={form.events.includes(ev.value)} onChange={() => toggleEvent(ev.value)}
+                                                    className="w-4 h-4 accent-slate-900" />
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-semibold text-slate-800">{ev.label}</p>
+                                                    <p className="text-xs text-slate-400">{ev.desc}</p>
+                                                </div>
+                                                <code className="text-xs text-slate-400 font-mono whitespace-nowrap">{ev.value}</code>
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="flex gap-3 pt-2">
+                                    <button onClick={() => setShowModal(false)} className="flex-1 py-2.5 border border-slate-200 text-slate-700 text-sm font-semibold rounded-xl hover:bg-slate-50">Cancel</button>
+                                    <button onClick={create} disabled={saving} className="flex-1 py-2.5 bg-slate-900 text-white text-sm font-bold rounded-xl hover:bg-slate-700 disabled:opacity-60 flex items-center justify-center gap-2">
+                                        {saving ? <Loader2 size={15} className="animate-spin" /> : null} Register
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+// ─── TAB: API DOCS / EXPLORER ─────────────────────────────────────────────────
+const DocsTab: React.FC = () => {
+    const { copied, copy } = useCopy();
+    const [selected, setSelected] = useState(ALL_ENDPOINTS[2]);
+    const [running, setRunning] = useState(false);
+    const [result, setResult] = useState<{ ok: boolean; payload: unknown } | null>(null);
+    const [bodyText, setBodyText] = useState('');
+    const baseUrl = (API_BASE_URL || '').replace(/\/$/, '');
+
+    useEffect(() => {
+        setBodyText(selected.body ? JSON.stringify(selected.body, null, 2) : '');
+        setResult(null);
+    }, [selected]);
+
+    const groups = useMemo(() => {
+        const map: Record<string, typeof ALL_ENDPOINTS> = {};
+        ALL_ENDPOINTS.forEach(e => { (map[e.group] = map[e.group] || []).push(e); });
+        return map;
+    }, []);
+
+    const curlCmd = useMemo(() => {
+        const bodyPart = selected.body ? ` \\\n  -H "Content-Type: application/json" \\\n  -d '${bodyText}'` : '';
+        return `curl -X ${selected.method} "${baseUrl}${selected.path}" \\\n  -H "Authorization: Bearer YOUR_JWT_TOKEN"${bodyPart}`;
+    }, [selected, bodyText, baseUrl]);
+
+    const tryOut = async () => {
+        setRunning(true); setResult(null);
+        try {
+            const localPath = selected.path.replace(/^\/api/, '');
+            let parsedBody: any = undefined;
+            if (selected.body && bodyText) {
+                try { parsedBody = JSON.parse(bodyText); } catch { parsedBody = undefined; }
+            }
+            const res = await api.request({ url: localPath, method: selected.method as any, data: parsedBody });
+            setResult({ ok: true, payload: res.data });
+        } catch (e: any) {
+            setResult({ ok: false, payload: e?.response?.data || e?.message || 'Request failed' });
+        } finally { setRunning(false); }
+    };
+
+    return (
+        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6 min-h-[600px]">
+            {/* Endpoint sidebar */}
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                <div className="p-4 border-b border-slate-100 bg-slate-50">
+                    <p className="text-xs font-black text-slate-500 uppercase tracking-wider">Endpoints</p>
+                </div>
+                <div className="overflow-y-auto max-h-[600px]">
+                    {Object.entries(groups).map(([grp, eps]) => (
+                        <div key={grp}>
+                            <p className="px-4 py-2 text-xs font-black text-slate-400 uppercase tracking-wider bg-slate-50/50 border-t border-slate-50 first:border-0">{grp}</p>
+                            {eps.map((ep, i) => (
+                                <button key={i} onClick={() => setSelected(ep)}
+                                    className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-left transition-colors hover:bg-slate-50 ${selected === ep ? 'bg-blue-50 border-r-2 border-blue-600' : ''}`}>
+                                    <span className={`text-[10px] font-black px-1.5 py-0.5 rounded font-mono flex-shrink-0 ${methodBadge(ep.method)}`}>{ep.method}</span>
+                                    <span className="text-xs font-mono text-slate-700 truncate">{ep.path}</span>
+                                </button>
+                            ))}
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* Detail panel */}
+            <div className="space-y-4">
+                {/* Header */}
+                <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
+                    <div className="flex items-center gap-3 mb-2">
+                        <span className={`text-xs font-black px-2.5 py-1 rounded-lg font-mono ${methodBadge(selected.method)}`}>{selected.method}</span>
+                        <code className="text-sm font-mono text-slate-800 flex-1">{selected.path}</code>
+                        <button onClick={() => copy(curlCmd, 'curl')} className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 px-3 py-1.5 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
+                            {copied === 'curl' ? <Check size={12} className="text-green-500" /> : <Copy size={12} />} Copy cURL
+                        </button>
+                    </div>
+                    <p className="text-sm text-slate-500">{selected.desc}</p>
+                </div>
+
+                {/* Body editor */}
+                {selected.body && (
+                    <div className="bg-slate-900 rounded-2xl overflow-hidden shadow-sm">
+                        <div className="flex items-center justify-between px-5 py-3 border-b border-white/10">
+                            <span className="text-xs font-black text-slate-400 uppercase tracking-wider">Request Body (editable)</span>
+                            <span className="text-xs text-slate-500">JSON</span>
+                        </div>
+                        <textarea value={bodyText} onChange={e => setBodyText(e.target.value)} rows={8}
+                            spellCheck={false}
+                            className="w-full bg-transparent text-green-400 font-mono text-xs p-5 focus:outline-none resize-none" />
+                    </div>
+                )}
+
+                {/* cURL preview */}
+                <div className="bg-slate-900 rounded-2xl overflow-hidden shadow-sm">
+                    <div className="flex items-center justify-between px-5 py-3 border-b border-white/10">
+                        <div className="flex items-center gap-2">
+                            <Terminal size={13} className="text-slate-500" />
+                            <span className="text-xs font-black text-slate-400 uppercase tracking-wider">cURL</span>
+                        </div>
+                        <button onClick={() => copy(curlCmd, 'curl2')} className="text-slate-500 hover:text-white transition-colors">
+                            {copied === 'curl2' ? <Check size={14} className="text-green-400" /> : <Copy size={14} />}
+                        </button>
+                    </div>
+                    <pre className="p-5 text-xs text-slate-300 font-mono overflow-x-auto whitespace-pre-wrap"><code>{curlCmd}</code></pre>
+                </div>
+
+                {/* Try it out */}
+                <button onClick={tryOut} disabled={running}
+                    className="w-full flex items-center justify-center gap-2 py-3 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition-all active:scale-[0.98] disabled:opacity-60 shadow-lg shadow-blue-200">
+                    {running ? <Loader2 size={16} className="animate-spin" /> : <Play size={16} />}
+                    {running ? 'Sending Request...' : 'Send Request'}
+                </button>
+
+                {/* Response */}
+                {result && (
+                    <div className={`rounded-2xl overflow-hidden shadow-sm border ${result.ok ? 'border-green-200' : 'border-red-200'}`}>
+                        <div className={`flex items-center gap-2 px-5 py-3 ${result.ok ? 'bg-green-50' : 'bg-red-50'}`}>
+                            {result.ok ? <CheckCircle2 size={15} className="text-green-600" /> : <XCircle size={15} className="text-red-600" />}
+                            <span className={`text-xs font-black uppercase tracking-wider ${result.ok ? 'text-green-700' : 'text-red-700'}`}>
+                                {result.ok ? 'Success' : 'Error'}
+                            </span>
+                        </div>
+                        <pre className="p-5 bg-white text-xs font-mono text-slate-700 overflow-x-auto max-h-64">
+                            <code>{JSON.stringify(result.payload, null, 2)}</code>
+                        </pre>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+// ─── TAB: SANDBOX ─────────────────────────────────────────────────────────────
+const scenarios = [
+    {
+        id: 'list_wallets',
+        name: 'Check Wallet Balances',
+        desc: 'Fetch all wallets associated with your account',
+        method: 'GET', path: '/wallets', body: null,
+        tag: 'Wallets',
+    },
+    {
+        id: 'create_goal',
+        name: 'Create a Social Goal',
+        desc: 'Create a crowdfunding goal with a share link',
+        method: 'POST', path: '/social/goals',
+        body: { title: 'Test Goal', description: 'A sandbox goal', target_amount: 100, currency: 'USD' },
+        tag: 'Social',
+    },
+    {
+        id: 'list_goals',
+        name: 'List Goals',
+        desc: 'Fetch all active social goals',
+        method: 'GET', path: '/social/goals', body: null,
+        tag: 'Social',
+    },
+    {
+        id: 'list_employees',
+        name: 'List Employees',
+        desc: 'Fetch your payroll employee roster',
+        method: 'GET', path: '/employees', body: null,
+        tag: 'Payroll',
+    },
+    {
+        id: 'list_keys',
+        name: 'List API Keys',
+        desc: 'Fetch all your API keys',
+        method: 'GET', path: '/api-keys', body: null,
+        tag: 'Developer',
+    },
+    {
+        id: 'list_webhooks',
+        name: 'List Webhooks',
+        desc: 'Fetch all registered webhook endpoints',
+        method: 'GET', path: '/webhooks', body: null,
+        tag: 'Developer',
+    },
+    {
+        id: 'list_invoices',
+        name: 'List Invoices',
+        desc: 'Get your invoice list',
+        method: 'GET', path: '/invoices', body: null,
+        tag: 'Billing',
+    },
+];
+
+const SandboxTab: React.FC = () => {
+    const [selected, setSelected] = useState(scenarios[0]);
+    const [running, setRunning] = useState(false);
+    const [result, setResult] = useState<{ ok: boolean; data: any; time: number } | null>(null);
+
+    const run = async () => {
+        setRunning(true); setResult(null);
+        const t = Date.now();
+        try {
+            const res = await api.request({ url: selected.path, method: selected.method as any, data: selected.body ?? undefined });
+            setResult({ ok: true, data: res.data, time: Date.now() - t });
+        } catch (e: any) {
+            setResult({ ok: false, data: e?.response?.data || e?.message, time: Date.now() - t });
+        } finally { setRunning(false); }
+    };
+
+    return (
+        <div className="space-y-6">
+            <div>
+                <h2 className="text-xl font-bold text-slate-900 mb-1">API Sandbox</h2>
+                <p className="text-sm text-slate-500">Test real API calls against your live account with one click.</p>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6">
+                {/* Scenario list */}
+                <div className="space-y-2">
+                    {scenarios.map(s => (
+                        <button key={s.id} onClick={() => { setSelected(s); setResult(null); }}
+                            className={`w-full text-left p-4 rounded-xl border transition-all ${selected.id === s.id ? 'border-blue-500 bg-blue-50 shadow-sm' : 'border-slate-100 bg-white hover:border-slate-200 hover:shadow-sm'}`}>
+                            <div className="flex items-center justify-between mb-1">
+                                <span className="text-xs font-bold text-slate-400">{s.tag}</span>
+                                <span className={`text-[10px] font-black px-1.5 py-0.5 rounded font-mono ${methodBadge(s.method)}`}>{s.method}</span>
+                            </div>
+                            <p className="text-sm font-bold text-slate-800">{s.name}</p>
+                            <p className="text-xs text-slate-400 mt-0.5">{s.desc}</p>
+                        </button>
+                    ))}
+                </div>
+
+                {/* Run panel */}
+                <div className="space-y-4">
+                    <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
+                        <div className="flex items-center gap-3 mb-3">
+                            <span className={`text-xs font-black px-2 py-0.5 rounded font-mono ${methodBadge(selected.method)}`}>{selected.method}</span>
+                            <code className="text-sm font-mono text-slate-700">/api{selected.path}</code>
+                        </div>
+                        <p className="text-sm text-slate-500">{selected.desc}</p>
+
+                        {selected.body && (
+                            <div className="mt-4 bg-slate-900 rounded-xl p-4">
+                                <p className="text-xs text-slate-500 mb-2 font-mono uppercase tracking-wider">Request Body</p>
+                                <pre className="text-xs text-green-400 font-mono"><code>{JSON.stringify(selected.body, null, 2)}</code></pre>
+                            </div>
+                        )}
+                    </div>
+
+                    <button onClick={run} disabled={running}
+                        className="w-full flex items-center justify-center gap-2 py-3 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition-all active:scale-[0.98] disabled:opacity-60 shadow-lg shadow-blue-200">
+                        {running ? <><Loader2 size={16} className="animate-spin" /> Running...</> : <><Play size={16} /> Run Test</>}
+                    </button>
+
+                    {result && (
+                        <div className={`rounded-2xl overflow-hidden shadow-sm border ${result.ok ? 'border-green-200' : 'border-red-200'}`}>
+                            <div className={`flex items-center justify-between px-5 py-3 ${result.ok ? 'bg-green-50' : 'bg-red-50'}`}>
+                                <div className="flex items-center gap-2">
+                                    {result.ok ? <CheckCircle2 size={15} className="text-green-600" /> : <XCircle size={15} className="text-red-600" />}
+                                    <span className={`text-xs font-black uppercase tracking-wider ${result.ok ? 'text-green-700' : 'text-red-700'}`}>
+                                        {result.ok ? 'Success' : 'Error'}
+                                    </span>
+                                </div>
+                                <span className="text-xs text-slate-400">{result.time}ms</span>
+                            </div>
+                            <pre className="p-5 bg-white text-xs font-mono text-slate-700 overflow-x-auto max-h-80">
+                                <code>{JSON.stringify(result.data, null, 2)}</code>
+                            </pre>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// ─── TAB: MCP GUIDE ──────────────────────────────────────────────────────────
+const McpTab: React.FC = () => {
+    const { copied, copy } = useCopy();
+    const snippets = [
+        { id: 'install', label: 'Build MCP Server', code: `cd mcp && go build -o corridor-mcp ./cmd` },
+        { id: 'run', label: 'Run with your API key', code: `PAYDAY_API_KEY=ck_your_key PAYDAY_API_URL=https://corridor-api.onrender.com ./corridor-mcp` },
+        { id: 'claude', label: 'Add to Claude Desktop', code: `{
+  "mcpServers": {
+    "corridor": {
+      "command": "/path/to/corridor-mcp",
+      "env": {
+        "PAYDAY_API_KEY": "ck_your_corridor_api_key",
+        "PAYDAY_API_URL": "https://corridor-api.onrender.com"
+      }
+    }
+  }
+}` },
+    ];
+
+    const tools = [
+        { name: 'create_goal', desc: 'Create a crowdfunding social goal', args: 'title, target_amount, currency' },
+        { name: 'contribute_to_goal', desc: 'Contribute funds to an existing goal', args: 'goal_id, amount, contributor_name' },
+        { name: 'check_balance', desc: 'Check wallet balance for the authenticated account', args: '(none required)' },
+        { name: 'send_payment', desc: 'Send a P2P payment to another user', args: 'recipient, amount, currency, message' },
+        { name: 'create_invoice', desc: 'Create and issue a new invoice', args: 'customer_id, items[], currency, due_date' },
+    ];
+
+    return (
+        <div className="space-y-8 max-w-3xl">
+            <div>
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-purple-50 border border-purple-200 rounded-full text-xs font-bold text-purple-700 mb-4">
+                    <Zap size={12} /> Model Context Protocol
+                </div>
+                <h2 className="text-xl font-bold text-slate-900 mb-2">MCP Integration Guide</h2>
+                <p className="text-slate-500 text-sm">
+                    Let AI agents like Claude control your Corridor account directly — create goals, send payments, check balances, and more — all through natural language.
+                </p>
+            </div>
+
+            {/* Tools */}
+            <div>
+                <h3 className="font-bold text-slate-900 mb-3">Available MCP Tools</h3>
+                <div className="space-y-2">
+                    {tools.map(t => (
+                        <div key={t.name} className="flex items-start gap-4 p-4 bg-white rounded-xl border border-slate-100 shadow-sm">
+                            <code className="text-xs font-mono bg-purple-50 text-purple-700 px-2.5 py-1 rounded-lg font-bold whitespace-nowrap flex-shrink-0">{t.name}</code>
+                            <div className="flex-1">
+                                <p className="text-sm font-semibold text-slate-800">{t.desc}</p>
+                                <p className="text-xs text-slate-400 mt-0.5">Args: <span className="font-mono">{t.args}</span></p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* Setup steps */}
+            <div>
+                <h3 className="font-bold text-slate-900 mb-4">Setup Steps</h3>
+                <div className="space-y-4">
+                    {snippets.map((s, i) => (
+                        <div key={s.id}>
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="w-6 h-6 bg-slate-900 text-white rounded-full flex items-center justify-center text-xs font-black">{i + 1}</div>
+                                <p className="text-sm font-bold text-slate-700">{s.label}</p>
+                            </div>
+                            <div className="bg-slate-900 rounded-xl overflow-hidden">
+                                <div className="flex items-center justify-between px-4 py-2 border-b border-white/10">
+                                    <span className="text-xs text-slate-500 font-mono">bash</span>
+                                    <button onClick={() => copy(s.code, s.id)} className="text-slate-500 hover:text-white transition-colors">
+                                        {copied === s.id ? <Check size={14} className="text-green-400" /> : <Copy size={14} />}
+                                    </button>
+                                </div>
+                                <pre className="p-4 text-xs text-green-400 font-mono overflow-x-auto"><code>{s.code}</code></pre>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* API key note */}
+            <div className="flex items-start gap-3 p-5 bg-blue-50 border border-blue-200 rounded-2xl">
+                <Lock size={16} className="text-blue-500 flex-shrink-0 mt-0.5" />
+                <div>
+                    <p className="text-sm font-bold text-blue-900 mb-1">Get an API Key first</p>
+                    <p className="text-xs text-blue-700">Go to the <strong>API Keys</strong> tab to create a key. Use a test key for development and a live key in production.</p>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// ─── MAIN DEVELOPER HUB ───────────────────────────────────────────────────────
+const tabs: { id: DevTab; label: string; icon: React.ReactNode }[] = [
+    { id: 'keys',     label: 'API Keys',   icon: <Key size={15} /> },
+    { id: 'webhooks', label: 'Webhooks',   icon: <Globe size={15} /> },
+    { id: 'docs',     label: 'API Docs',   icon: <Code2 size={15} /> },
+    { id: 'sandbox',  label: 'Sandbox',    icon: <Activity size={15} /> },
+    { id: 'mcp',      label: 'MCP Guide',  icon: <Bot size={15} /> },
+];
+
+const DeveloperHub: React.FC = () => {
+    const [activeTab, setActiveTab] = useState<DevTab>('keys');
+
+    return (
+        <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-10">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                <div>
+                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-slate-900 text-white text-xs font-bold rounded-full mb-3">
+                        <Terminal size={12} /> Developer Hub
+                    </div>
+                    <h1 className="text-2xl font-black text-slate-900 tracking-tight">Build with Corridor</h1>
+                    <p className="text-slate-500 text-sm mt-1">Generate keys, configure webhooks, explore the API, and integrate Corridor payments into your systems.</p>
+                </div>
+                <a href="https://github.com/corridrlabs/corridor" target="_blank" rel="noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-600 text-sm font-semibold rounded-xl hover:bg-slate-50 transition-all whitespace-nowrap flex-shrink-0">
+                    <ExternalLink size={14} /> View on GitHub
+                </a>
+            </div>
+
+            {/* Stats bar */}
+            <div className="grid grid-cols-3 gap-4">
+                {[
+                    { label: 'REST Endpoints', value: `${ALL_ENDPOINTS.length}+`, icon: <Globe size={15} /> },
+                    { label: 'Webhook Events', value: `${WEBHOOK_EVENTS.length}`, icon: <Zap size={15} /> },
+                    { label: 'MCP Tools', value: '5', icon: <Bot size={15} /> },
+                ].map(s => (
+                    <div key={s.label} className="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm flex items-center gap-3">
+                        <div className="w-8 h-8 bg-slate-100 rounded-xl flex items-center justify-center text-slate-600">{s.icon}</div>
+                        <div>
+                            <p className="text-lg font-black text-slate-900">{s.value}</p>
+                            <p className="text-xs text-slate-400 font-medium">{s.label}</p>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Tab bar */}
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                <div className="flex border-b border-slate-100 overflow-x-auto no-scrollbar">
+                    {tabs.map(t => (
+                        <button key={t.id} onClick={() => setActiveTab(t.id)}
+                            className={`flex items-center gap-2 px-5 py-4 text-sm font-bold whitespace-nowrap transition-colors ${
+                                activeTab === t.id
+                                    ? 'text-slate-900 border-b-2 border-slate-900 bg-slate-50/50'
+                                    : 'text-slate-400 hover:text-slate-600'
+                            }`}>
+                            {t.icon} {t.label}
+                        </button>
+                    ))}
+                </div>
+                <div className="p-6">
+                    {activeTab === 'keys'     && <ApiKeysTab />}
+                    {activeTab === 'webhooks' && <WebhooksTab />}
+                    {activeTab === 'docs'     && <DocsTab />}
+                    {activeTab === 'sandbox'  && <SandboxTab />}
+                    {activeTab === 'mcp'      && <McpTab />}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default DeveloperHub;

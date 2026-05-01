@@ -1,0 +1,200 @@
+services:
+  # 1. Corridor V2 Backend (Go Monolith)
+  - type: web
+    name: corridor-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    proPlan: false
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: APP_ENV
+        value: production
+      - key: APP_HOST
+        value: 0.0.0.0
+      - key: APP_PORT
+        value: 10000
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRE_MIN
+        value: 43200
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      - key: PUBLIC_APP_URL
+        sync: false
+      - key: PAY_BASE_URL
+        sync: false
+      - key: FRONTEND_BASE_URL
+        sync: false
+      - key: PUBLIC_BASE_URL
+        sync: false
+      - key: RATE_LIMIT_PER_MINUTE
+        value: 60
+      - key: HEALTH_CHECK_SECRET
+        sync: false
+      - key: LOG_LEVEL
+        value: DEBUG
+      - key: TIMEZONE
+        value: Africa/Nairobi
+      - key: DEFAULT_CURRENCY
+        value: KES
+      - key: DOCS_ENABLED
+        value: true
+      - key: SMTP_ENABLED
+        value: true
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: 587
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: FROM_EMAIL
+        sync: false
+      - key: FROM_NAME
+        value: "PayDay Care"
+      - key: CIRCLE_API_KEY
+        sync: false
+      - key: CIRCLE_BASE_URL
+        value: https://api-sandbox.circle.com
+      - key: CIRCLE_WEBHOOK_SECRET
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_PUBLISHABLE_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: STRIPE_SUCCESS_URL
+        sync: false
+      - key: STRIPE_CANCEL_URL
+        sync: false
+      - key: MPESA_CONSUMER_KEY
+        sync: false
+      - key: MPESA_CONSUMER_SECRET
+        sync: false
+      - key: MPESA_PASSKEY
+        sync: false
+      - key: MPESA_SHORTCODE
+        sync: false
+      - key: MPESA_ENV
+        value: sandbox
+      - key: MPESA_CALLBACK_URL
+        sync: false
+      - key: SOLANA_RPC_URL
+        value: https://api.devnet.solana.com
+      - key: SOLANA_WS_URL
+        value: wss://api.devnet.solana.com
+      - key: SOLANA_MASTER_WALLET
+        sync: false
+      - key: SOLANA_PRIVATE_KEY
+        sync: false
+      - key: HELIUS_API_KEY
+        sync: false
+      - key: HELIUS_API_KEY_SECONDARY
+        sync: false
+      - key: HELIUS_BASE_URL
+        value: https://api-mainnet.helius-rpc.com/v0
+      - key: INTERSEND_API_KEY
+        sync: false
+      - key: INTERSEND_BASE_URL
+        value: https://api.intersend.io/v1
+      - key: INTERSEND_FROM_EMAIL
+        sync: false
+      - key: INTERSEND_FROM_NAME
+        value: "PayDay Bot"
+      - key: GROQ_API_KEY
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: SUPABASE_STORAGE_BUCKET
+        value: invoices
+      - key: USE_SUPABASE_AUTH
+        value: false
+      - key: WA_BASE_URL
+        value: https://graph.facebook.com/v19.0
+      - key: WA_TOKEN
+        sync: false
+      - key: WA_PHONE_NUMBER_ID
+        sync: false
+      - key: WA_TEMPLATE_LANG
+        value: en
+      - key: WA_WEBHOOK_VERIFY_TOKEN
+        sync: false
+      - key: AOS_ENABLED
+        value: true
+      - key: CHAOS_ERROR_RATE
+        value: 0.1
+      - key: CHAOS_LATENCY_ENABLED
+        value: true
+      - key: ADMIN_PEPA_WALLET
+        sync: false
+      - key: PEPA_ADMIN_WALLET
+        sync: false
+      - key: PEPA_API_KEY
+        sync: false
+      - key: PEPA_API_URL
+        value: https://pepa-p7n8.onrender.com
+      - key: RENDER_SERVICE_ID
+        sync: false
+    region: ohio
+    healthCheckPath: /health
+
+  # 2. Frontend (Static Site)
+  - type: web
+    name: corridor-frontend
+    runtime: static
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: frontend/dist
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          name: corridor-api
+          type: web
+          property: url
+      - key: VITE_APP_URL
+        sync: false
+      - key: VITE_GOOGLE_CLIENT_ID
+        sync: false
+      - key: VITE_CIRCLE_APP_ID
+        sync: false
+    region: ohio
+
+  # 3. MCP HTTP Server (AI Agent API)
+  - type: web
+    name: corridor-mcp
+    runtime: docker
+    dockerfilePath: ./mcp/Dockerfile.http
+    dockerContext: ./mcp
+    proPlan: false
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: 10001
+      - key: PAYDAY_API_URL
+        fromService:
+          name: corridor-api
+          type: web
+          property: url
+      - key: PAYDAY_API_KEY
+        sync: false
+    region: ohio
+    healthCheckPath: /health
+
+# Note:
+# - Configure Supabase via DATABASE_URL in Render dashboard (External Database).
+# - Use Supabase pooler transaction URL (port 6543) for Render.
+# - Add sensitive env vars in Render dashboard after initial deploy.

@@ -1,0 +1,60 @@
+{
+    "handle": "resources",
+    "title": "Resources",
+    "icon": "FolderOpen",
+    "description": "Helpful resources and guides",
+    "sections": [
+        {
+            "title": "📚 Learning Resources",
+            "items": [
+                {
+                    "name": "Payment Orchestration 101",
+                    "type": "Guide",
+                    "description": "Learn the fundamentals of payment orchestration"
+                },
+                {
+                    "name": "API Best Practices",
+                    "type": "Guide",
+                    "description": "How to build robust integrations"
+                },
+                {
+                    "name": "Webhook Security",
+                    "type": "Guide",
+                    "description": "Secure your webhook endpoints"
+                }
+            ]
+        },
+        {
+            "title": "🎥 Video Tutorials",
+            "items": [
+                {
+                    "name": "Getting Started with Corridor",
+                    "type": "Video",
+                    "duration": "10 min",
+                    "description": "Complete walkthrough from signup to first payment"
+                },
+                {
+                    "name": "Building Custom Workflows",
+                    "type": "Video",
+                    "duration": "15 min",
+                    "description": "Create powerful automation workflows"
+                }
+            ]
+        },
+        {
+            "title": "📖 Case Studies",
+            "items": [
+                {
+                    "name": "How TechCorp reduced integration time by 85%",
+                    "type": "Case Study",
+                    "company": "TechCorp Kenya"
+                },
+                {
+                    "name": "E-Commerce Plus achieves 99.9% uptime",
+                    "type": "Case Study",
+                    "company": "E-Commerce Plus"
+                }
+            ]
+        }
+    ]
+}

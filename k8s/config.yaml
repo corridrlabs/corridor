@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: corridor-config
+data:
+  PORT: "8000"
+  CIRCLE_BASE_URL: "https://api-sandbox.circle.com"
+  SOLANA_RPC_URL: "https://api.devnet.solana.com"
+  APP_ENV: "production"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: corridor-secrets-template
+type: Opaque
+data:
+  # Base64 encoded values go here
+  DATABASE_URL: ""
+  JWT_SECRET: ""
+  STRIPE_SECRET_KEY: ""
+  PAYDAY_CIRCLE_API_KEY: ""

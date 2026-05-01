@@ -1,0 +1,156 @@
+{
+    "sections": [
+        {
+            "items": [
+                {
+                    "icon": "Home",
+                    "label": "Home",
+                    "path": "/dashboard",
+                    "app": "home"
+                },
+                {
+                    "icon": "Grid",
+                    "label": "All apps",
+                    "expandable": true,
+                    "children": [
+                        {
+                            "icon": "BarChart",
+                            "label": "Analytics",
+                            "app": "analytics"
+                        },
+                        {
+                            "icon": "DollarSign",
+                            "label": "Revenue",
+                            "app": "revenue"
+                        },
+                        {
+                            "icon": "Users",
+                            "label": "Customers",
+                            "app": "customers"
+                        },
+                        {
+                            "icon": "Wand2",
+                            "label": "Build with AI",
+                            "app": "build_ai"
+                        }
+                    ]
+                },
+                {
+                    "icon": "Folder",
+                    "label": "Project",
+                    "path": "/dashboard/project"
+                }
+            ]
+        },
+        {
+            "title": "Analytics",
+            "items": [
+                {
+                    "icon": "LayoutDashboard",
+                    "label": "Dashboards",
+                    "app": "dashboards"
+                },
+                {
+                    "icon": "TrendingUp",
+                    "label": "Revenue analytics",
+                    "app": "revenue"
+                },
+                {
+                    "icon": "Activity",
+                    "label": "Real-time monitoring",
+                    "app": "realtime"
+                }
+            ]
+        },
+        {
+            "title": "Employees",
+            "items": [
+                {
+                    "icon": "Users",
+                    "label": "EWA Manager",
+                    "app": "ewa_manager"
+                }
+            ]
+        },
+        {
+            "title": "AI Assistant",
+            "items": [
+                {
+                    "icon": "Sparkles",
+                    "label": "Ask AI",
+                    "app": "ask_ai"
+                }
+            ]
+        },
+        {
+            "title": "Payment Connectors",
+            "items": [
+                {
+                    "icon": "Plug",
+                    "label": "All Connectors",
+                    "app": "payment_connectors"
+                },
+                {
+                    "icon": "Smartphone",
+                    "label": "M-Pesa",
+                    "app": "mpesa_connector"
+                },
+                {
+                    "icon": "CreditCard",
+                    "label": "Paystack",
+                    "app": "paystack_connector"
+                },
+                {
+                    "icon": "Zap",
+                    "label": "Flutterwave",
+                    "app": "flutterwave_connector"
+                }
+            ]
+        },
+        {
+            "title": "Payments",
+            "items": [
+                {
+                    "icon": "CreditCard",
+                    "label": "Transactions",
+                    "app": "transactions"
+                },
+                {
+                    "icon": "FileText",
+                    "label": "Invoices",
+                    "app": "invoices"
+                },
+                {
+                    "icon": "Repeat",
+                    "label": "Subscriptions",
+                    "app": "subscriptions"
+                }
+            ]
+        },
+        {
+            "title": "Tools",
+            "items": [
+                {
+                    "icon": "GitBranch",
+                    "label": "Workflows",
+                    "app": "workflows"
+                },
+                {
+                    "icon": "Database",
+                    "label": "API Keys",
+                    "app": "api_keys"
+                },
+                {
+                    "icon": "Webhook",
+                    "label": "Webhooks",
+                    "app": "webhooks"
+                },
+                {
+                    "icon": "Code",
+                    "label": "Developer Tools",
+                    "app": "dev_tools"
+                }
+            ]
+        }
+    ]
+}

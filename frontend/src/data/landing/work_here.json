@@ -1,0 +1,97 @@
+{
+    "handle": "work_here",
+    "title": "Work Here",
+    "icon": "Briefcase",
+    "description": "Join the Corridor team",
+    "hero": {
+        "title": "Build the Future of Payments",
+        "subtitle": "Join a team of passionate builders creating the infrastructure that powers African commerce.",
+        "emoji": "🚀"
+    },
+    "culture": {
+        "title": "Our Culture",
+        "values": [
+            {
+                "emoji": "🎯",
+                "title": "Mission Driven",
+                "description": "We're solving real problems for African businesses. Every line of code has purpose."
+            },
+            {
+                "emoji": "🌍",
+                "title": "Remote First",
+                "description": "Work from anywhere in Africa. We believe talent is everywhere, opportunity should be too."
+            },
+            {
+                "emoji": "📚",
+                "title": "Learn & Grow",
+                "description": "Generous learning budget, conference attendance, and mentorship from industry veterans."
+            },
+            {
+                "emoji": "⚡",
+                "title": "Move Fast",
+                "description": "Ship early, iterate quickly. We value progress over perfection."
+            }
+        ]
+    },
+    "openings": [
+        {
+            "title": "Senior Backend Engineer",
+            "location": "Remote (Africa)",
+            "type": "Full-time",
+            "description": "Build scalable payment orchestration systems using Python, FastAPI, and PostgreSQL.",
+            "skills": [
+                "Python",
+                "FastAPI",
+                "PostgreSQL",
+                "Redis",
+                "Docker"
+            ]
+        },
+        {
+            "title": "Frontend Engineer",
+            "location": "Remote (Africa)",
+            "type": "Full-time",
+            "description": "Craft beautiful, performant interfaces with React, TypeScript, and Tailwind CSS.",
+            "skills": [
+                "React",
+                "TypeScript",
+                "Tailwind CSS",
+                "Vite"
+            ]
+        },
+        {
+            "title": "DevOps Engineer",
+            "location": "Remote (Africa)",
+            "type": "Full-time",
+            "description": "Build and maintain our infrastructure on AWS, ensuring 99.99% uptime.",
+            "skills": [
+                "AWS",
+                "Kubernetes",
+                "Terraform",
+                "GitHub Actions"
+            ]
+        },
+        {
+            "title": "Product Designer",
+            "location": "Remote (Africa)",
+            "type": "Full-time",
+            "description": "Design delightful experiences for developers and business users alike.",
+            "skills": [
+                "Figma",
+                "User Research",
+                "Prototyping",
+                "Design Systems"
+            ]
+        }
+    ],
+    "perks": [
+        "💰 Competitive salary + equity",
+        "🏥 Health insurance",
+        "🌴 Unlimited PTO",
+        "💻 Latest MacBook Pro",
+        "📚 KES 100,000 learning budget",
+        "🎉 Team retreats twice a year",
+        "🚀 Work on cutting-edge tech",
+        "🌟 Make real impact"
+    ]
+}

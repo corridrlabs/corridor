@@ -1,0 +1,14 @@
+{
+  "index": "Overview",
+  "quickstart": "Quickstart",
+  "authentication": "Authentication",
+  "webhooks": "Webhooks",
+  "api": {
+    "title": "API Reference",
+    "type": "menu"
+  },
+  "sdks": {
+    "title": "SDKs",
+    "type": "menu"
+  }
+}

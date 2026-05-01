@@ -1,0 +1,161 @@
+# Payments API
+
+Corridor provides unified payment APIs across multiple rails: USDC (Circle), bank transfers, mobile money, and cards.
+
+## Overview
+
+- **USDC**: Circle on/off-ramp for crypto-fiat conversion
+- **Bank Transfers**: ACH, SWIFT for USD; local rails for KES/NGN
+- **Mobile Money**: M-Pesa (Kenya), other regional rails
+- **Cards**: Stripe integration for card payments
+
+## Get Wallet Balance
+
+```bash
+GET /api/wallets/{id}
+```
+
+### Response
+
+```json
+{
+  "id": "wallet-uuid",
+  "account_id": "account-uuid",
+  "balance": "1000.00",
+  "currency": "USDC",
+  "available": "1000.00",
+  "hold": "0.00"
+}
+```
+
+## Fund Wallet
+
+```bash
+POST /api/fund-wallet
+```
+
+### Request
+
+```json
+{
+  "wallet_id": "wallet-uuid",
+  "amount": 500.00,
+  "currency": "USDC",
+  "source": "circle"
+}
+```
+
+### Response
+
+```json
+{
+  "id": "payment-uuid",
+  "status": "pending",
+  "amount": 500.00,
+  "currency": "USDC"
+}
+```
+
+## Create Payment Link
+
+```bash
+POST /api/payment-links
+```
+
+### Request
+
+```json
+{
+  "title": "Donation",
+  "amount": 25.00,
+  "currency": "USD"
+}
+```
+
+### Response
+
+```json
+{
+  "id": "link-uuid",
+  "url": "https://corridormoney.net/pay/abc123",
+  "amount": 25.00,
+  "currency": "USD"
+}
+```
+
+## Request Payout
+
+```bash
+POST /api/payouts
+```
+
+### Request
+
+```json
+{
+  "amount": 100.00,
+  "currency": "USD",
+  "destination_bank": "Bank of America",
+  "account_number": "1234567890",
+  "account_name": "John Doe"
+}
+```
+
+### Response
+
+```json
+{
+  "id": "payout-uuid",
+  "status": "pending",
+  "amount": 100.00,
+  "currency": "USD"
+}
+```
+
+## Get Transaction History
+
+```bash
+GET /api/transactions
+```
+
+### Response
+
+```json
+{
+  "data": [
+    {
+      "id": "tx-uuid",
+      "type": "payment",
+      "amount": 25.00,
+      "currency": "USD",
+      "status": "completed",
+      "created_at": "2024-01-15T10:30:00Z"
+    }
+  ],
+  "has_more": false
+}
+```
+
+## Supported Currencies
+
+| Currency | Rail |
+|-----------|------|
+| `USDC` | Circle |
+| `USD` | ACH/SWIFT |
+| `KES` | M-Pesa |
+| `NGN` | Flutterwave |
+
+## Rate Limits
+
+- Fund wallet: 10/minute
+- Payouts: 100/minute
+- Payment links: 1000/minute
+
+## Error Codes
+
+| Code | Description |
+|------|-------------|
+| `insufficient_funds` | Wallet balance too low |
+| `invalid_account` | Bank account invalid |
+| `rail_unavailable` | Payment rail down |
+| `kyc_required` | KYC verification needed |

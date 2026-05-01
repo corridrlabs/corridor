@@ -1,0 +1,80 @@
+User-agent: *
+Allow: /
+
+# Prioritize crawling of key pages
+Allow: /$
+Allow: /pricing$
+Allow: /docs$
+Allow: /docs/developers$
+Allow: /docs/businesses$
+Allow: /docs/partners$
+Allow: /docs/collaborators$
+
+# Block authentication and dashboard pages
+Disallow: /login
+Disallow: /signup
+Disallow: /onboarding
+Disallow: /dashboard
+Disallow: /organizations
+Disallow: /org/
+Disallow: /workflows
+Disallow: /customers
+Disallow: /analytics
+Disallow: /treasury
+Disallow: /settings
+Disallow: /ai-workflows
+Disallow: /bank-connectors
+Disallow: /developers/
+
+# Block API endpoints and internal routes
+Disallow: /api/
+Disallow: /webhooks/
+Disallow: /admin/
+Disallow: /internal/
+
+# Block common non-content files
+Disallow: /*.json$
+Disallow: /*.txt$
+Disallow: /*.xml$
+
+# Allow sitemap
+Sitemap: https://corridor.africa/sitemap.xml
+
+# Special instructions for major crawlers
+User-agent: Googlebot
+Crawl-delay: 1
+
+User-agent: Bingbot
+Crawl-delay: 1
+
+User-agent: Slurp
+Crawl-delay: 1
+
+# Social media crawlers
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+# Image and file crawlers
+User-agent: Googlebot-Image
+Allow: /public/
+Allow: /*.jpg$
+Allow: /*.jpeg$
+Allow: /*.png$
+Allow: /*.svg$
+Allow: /*.webp$
+
+# Block bad bots
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /

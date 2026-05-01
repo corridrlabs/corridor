@@ -1,0 +1,7 @@
+
+# SMTP Configuration for Email Service
+SMTP_HOST=smtp.zoho.com
+SMTP_PORT=587
+SMTP_USERNAME=people@corridormoney.net
+SMTP_PASSWORD=dw$pdM3g
+SMTP_FROM=people@corridormoney.net

@@ -1,0 +1,74 @@
+{
+    "handle": "why_corridor",
+    "title": "Why Corridor?",
+    "icon": "Sparkles",
+    "description": "Discover what makes Corridor special",
+    "hero": {
+        "title": "Why Choose Corridor?",
+        "subtitle": "We're not just another payment platform. We're your business orchestration partner.",
+        "emoji": "✨"
+    },
+    "reasons": [
+        {
+            "emoji": "🚀",
+            "title": "Ship Faster",
+            "description": "Integrate once, access all payment providers. No more juggling multiple APIs or dealing with inconsistent documentation.",
+            "stat": "10x faster integration"
+        },
+        {
+            "emoji": "🛡️",
+            "title": "Built for Reliability",
+            "description": "Automatic failover, intelligent retry logic, and real-time monitoring ensure your payments never fail.",
+            "stat": "99.99% uptime"
+        },
+        {
+            "emoji": "💡",
+            "title": "Smart Orchestration",
+            "description": "Our AI-powered routing finds the best payment path for each transaction, optimizing for cost and success rate.",
+            "stat": "15% cost savings"
+        },
+        {
+            "emoji": "🔧",
+            "title": "Developer First",
+            "description": "Beautiful docs, comprehensive SDKs, and a playground environment. Built by developers, for developers.",
+            "stat": "5 min to first API call"
+        },
+        {
+            "emoji": "📊",
+            "title": "Deep Insights",
+            "description": "Real-time analytics, custom reports, and actionable insights help you understand your payment flows.",
+            "stat": "Real-time dashboards"
+        },
+        {
+            "emoji": "🤝",
+            "title": "Human Support",
+            "description": "Talk to real humans who understand payments. No bots, no scripts, just genuine help when you need it.",
+            "stat": "< 2 hour response time"
+        }
+    ],
+    "comparison": {
+        "title": "Traditional Integration vs Corridor",
+        "traditional": {
+            "label": "Traditional Way",
+            "items": [
+                "3-6 months integration time",
+                "Multiple API integrations",
+                "Manual failover handling",
+                "Limited visibility",
+                "Scattered documentation",
+                "Email-only support"
+            ]
+        },
+        "corridor": {
+            "label": "The Corridor Way",
+            "items": [
+                "2 weeks to production",
+                "Single unified API",
+                "Automatic failover",
+                "Real-time monitoring",
+                "Comprehensive docs + playground",
+                "Human support via chat/call"
+            ]
+        }
+    }
+}

@@ -1,0 +1,1 @@
+/home/adulam/Desktop/dev/Payday/contracts/payday_solana_contracts/target/sbpf-solana-solana/release/libewa_program.rlib: /home/adulam/Desktop/dev/Payday/contracts/payday_solana_contracts/programs/ewa_program/src/lib.rs

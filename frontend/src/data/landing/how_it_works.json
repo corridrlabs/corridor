@@ -1,0 +1,333 @@
+{
+    "handle": "how_it_works",
+    "title": "How it works",
+    "icon": "Lightbulb",
+    "sidebar": {
+        "title": "The Book of Corridor",
+        "sections": [
+            {
+                "title": "Getting Started",
+                "items": [
+                    {
+                        "id": "intro",
+                        "label": "Introduction",
+                        "icon": "BookOpen"
+                    },
+                    {
+                        "id": "quickstart",
+                        "label": "Quick Start Guide",
+                        "icon": "Zap"
+                    },
+                    {
+                        "id": "setup",
+                        "label": "Initial Setup",
+                        "icon": "Settings"
+                    },
+                    {
+                        "id": "owners_getting_started",
+                        "label": "For Business Owners",
+                        "icon": "BookOpen"
+                    },
+                    {
+                        "id": "finance_getting_started",
+                        "label": "For Finance Teams",
+                        "icon": "BarChart3"
+                    },
+                    {
+                        "id": "hr_getting_started",
+                        "label": "For HR Teams",
+                        "icon": "Users"
+                    },
+                    {
+                        "id": "ops_getting_started",
+                        "label": "For Operations",
+                        "icon": "Workflow"
+                    }
+                ]
+            },
+            {
+                "title": "Core Concepts",
+                "items": [
+                    {
+                        "id": "orchestration",
+                        "label": "Business Orchestration",
+                        "icon": "Workflow"
+                    },
+                    {
+                        "id": "integrations",
+                        "label": "Payment Infrastructure",
+                        "icon": "Plug"
+                    },
+                    {
+                        "id": "ewa",
+                        "label": "Employee Wellness (EWA)",
+                        "icon": "Activity"
+                    },
+                    {
+                        "id": "workflows",
+                        "label": "Automation",
+                        "icon": "GitBranch"
+                    }
+                ]
+            },
+            {
+                "title": "Use Cases",
+                "items": [
+                    {
+                        "id": "retail",
+                        "label": "Retail Business",
+                        "icon": "BarChart3"
+                    },
+                    {
+                        "id": "logistics",
+                        "label": "Logistics Company",
+                        "icon": "Workflow"
+                    },
+                    {
+                        "id": "professional_services",
+                        "label": "Professional Services",
+                        "icon": "BookOpen"
+                    },
+                    {
+                        "id": "hospitality",
+                        "label": "Hospitality",
+                        "icon": "Users"
+                    }
+                ]
+            },
+            {
+                "title": "Best Practices",
+                "items": [
+                    {
+                        "id": "security",
+                        "label": "Payment Security",
+                        "icon": "Shield"
+                    },
+                    {
+                        "id": "ewa_compliance",
+                        "label": "EWA Compliance (Kenya)",
+                        "icon": "Shield"
+                    },
+                    {
+                        "id": "data_privacy",
+                        "label": "Data Privacy",
+                        "icon": "BookOpen"
+                    },
+                    {
+                        "id": "analytics",
+                        "label": "Financial Planning",
+                        "icon": "BarChart3"
+                    }
+                ]
+            }
+        ]
+    },
+    "content": {
+        "intro": {
+            "title": "Introduction to Corridor",
+            "sections": [
+                {
+                    "heading": "What is Corridor?",
+                    "content": "Corridor is a comprehensive Business Orchestration Platform designed to streamline your financial operations. We unify payments, payroll, and employee benefits into a single, powerful operating system."
+                },
+                {
+                    "heading": "Why Corridor?",
+                    "content": "Running a modern business requires juggling multiple tools for payments, HR, and accounting. Corridor replaces this fragmentation with a unified suite that handles everything from accepting customer payments to paying your employees instantly."
+                },
+                {
+                    "heading": "Key Benefits",
+                    "list": [
+                        "Unified dashboard for all financial operations",
+                        "Automated reconciliation and reporting",
+                        "Instant Early Wage Access (EWA) for employees",
+                        "Seamless integration with existing tools",
+                        "Enterprise-grade security and compliance"
+                    ]
+                }
+            ]
+        },
+        "quickstart": {
+            "title": "Quick Start Guide",
+            "sections": [
+                {
+                    "heading": "Step 1: Create Your Organization",
+                    "content": "Sign up and create your organization profile. Add your business details, logo, and operating currency."
+                },
+                {
+                    "heading": "Step 2: Invite Your Team",
+                    "content": "Navigate to the Team section and invite your finance, HR, and operations managers. Assign roles to ensure proper access control."
+                },
+                {
+                    "heading": "Step 3: Connect Payment Methods",
+                    "content": "Link your bank accounts and mobile money wallets to start accepting payments and processing payouts."
+                }
+            ]
+        },
+        "setup": {
+            "title": "Initial Setup",
+            "sections": [
+                {
+                    "heading": "Configure Settings",
+                    "content": "Customize your experience by setting up default currencies, tax rates, and notification preferences."
+                },
+                {
+                    "heading": "Verify Identity",
+                    "content": "Complete the KYC/KYB process to unlock higher transaction limits and advanced features."
+                }
+            ]
+        },
+        "orchestration": {
+            "title": "Payment Orchestration",
+            "sections": [
+                {
+                    "heading": "Unified Payment Layer",
+                    "content": "Corridor sits between your business and payment providers. We route transactions intelligently to ensure the highest success rates and lowest fees."
+                },
+                {
+                    "heading": "Smart Routing",
+                    "content": "Automatically route payments through the best provider based on currency, amount, and reliability."
+                }
+            ]
+        },
+        "ewa": {
+            "title": "Early Wage Access (EWA)",
+            "sections": [
+                {
+                    "heading": "On-Demand Pay",
+                    "content": "Give your employees financial freedom by allowing them to access a portion of their earned wages before corridor. This reduces financial stress and increases retention."
+                },
+                {
+                    "heading": "How It Works",
+                    "list": [
+                        "Employees view earned wages in the Corridor mobile app",
+                        "They request an advance (e.g., KES 2,000)",
+                        "Funds are instantly disbursed to their mobile wallet",
+                        "The amount is automatically deducted from their next paycheck"
+                    ]
+                },
+                {
+                    "heading": "Employer Benefits",
+                    "list": [
+                        "Zero impact on cash flow (optional pre-funding)",
+                        "Automated deduction management",
+                        "Increased employee productivity and loyalty"
+                    ]
+                }
+            ]
+        },
+        "integrations": {
+            "title": "Integration Management",
+            "sections": [
+                {
+                    "heading": "Connect Your Tools",
+                    "content": "Corridor integrates with your favorite accounting, HR, and CRM software. Sync data automatically to keep your records up to date."
+                }
+            ]
+        },
+        "workflows": {
+            "title": "Custom Workflows",
+            "sections": [
+                {
+                    "heading": "Automate Business Logic",
+                    "content": "Use our visual workflow builder to automate repetitive tasks. For example, 'If a payment fails, send an email to the customer and create a task for the support team.'"
+                }
+            ]
+        },
+        "retail": {
+            "title": "Retail Business",
+            "sections": [
+                {
+                    "heading": "Inventory, Payments & EWA",
+                    "content": "Connect your point-of-sale, online store, and staff payouts so stock, sales, and wages stay in sync."
+                },
+                {
+                    "heading": "Frontline team experience",
+                    "content": "Offer Early Wage Access for staff working shifts so they can handle emergencies without waiting for corridor."
+                }
+            ]
+        },
+        "logistics": {
+            "title": "Logistics Company",
+            "sections": [
+                {
+                    "heading": "Fleet & driver payouts",
+                    "content": "Instantly disburse funds for fuel, tolls, and allowances while keeping a real-time view of spend per route."
+                },
+                {
+                    "heading": "Automated invoicing",
+                    "content": "Generate and send invoices as soon as deliveries are completed, with reconciliation back to each customer."
+                }
+            ]
+        },
+        "professional_services": {
+            "title": "Professional Services",
+            "sections": [
+                {
+                    "heading": "Time tracking to invoice",
+                    "content": "Track billable hours and convert them into professional invoices in a few clicks."
+                },
+                {
+                    "heading": "Retainers & subscriptions",
+                    "content": "Set up recurring billing for retainers, support packages, and ongoing service contracts."
+                }
+            ]
+        },
+        "hospitality": {
+            "title": "Hospitality",
+            "sections": [
+                {
+                    "heading": "Staff scheduling & payouts",
+                    "content": "Coordinate shifts, tips, and payouts for front-of-house and back-of-house teams in one place."
+                },
+                {
+                    "heading": "Guest payments",
+                    "content": "Accept bookings, bar, and restaurant payments with unified reporting across your property."
+                }
+            ]
+        },
+        "security": {
+            "title": "Payment Security",
+            "sections": [
+                {
+                    "heading": "Bank-grade protection",
+                    "content": "We use strong encryption and follow PCI-DSS style practices to protect customer card and mobile money data."
+                },
+                {
+                    "heading": "Access control",
+                    "content": "Use roles and approvals so only the right people can move money, issue refunds, or change payout details."
+                }
+            ]
+        },
+        "ewa_compliance": {
+            "title": "EWA Compliance (Kenya)",
+            "sections": [
+                {
+                    "heading": "Stay aligned with regulation",
+                    "content": "Configure limits and policies so Early Wage Access follows local rules and your HR policies in Kenya."
+                }
+            ]
+        },
+        "data_privacy": {
+            "title": "Data Privacy",
+            "sections": [
+                {
+                    "heading": "Respect customer and employee data",
+                    "content": "Control who can view sensitive data and export reports with audit logs for every action."
+                }
+            ]
+        },
+        "analytics": {
+            "title": "Financial Planning",
+            "sections": [
+                {
+                    "heading": "Plan with real numbers",
+                    "content": "Use real-time revenue and expense data to forecast cash flow and plan for upcoming obligations like payroll and tax."
+                },
+                {
+                    "heading": "Share insights",
+                    "content": "Export or share dashboards with leadership so everyone is aligned on the current plan versus actuals."
+                }
+            ]
+        }
+    }
+}

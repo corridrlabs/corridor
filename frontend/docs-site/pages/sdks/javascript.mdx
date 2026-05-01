@@ -1,0 +1,202 @@
+# JavaScript SDK
+
+Modern JavaScript/TypeScript SDK with React hooks, Next.js integration, and full browser support.
+
+## Installation
+
+```bash
+npm install @corridor/sdk
+# or
+yarn add @corridor/sdk
+```
+
+For React integration:
+```bash
+npm install @corridor/sdk @corridor/react
+```
+
+## Quick Start
+
+### Node.js/TypeScript
+
+```typescript
+import { CorridorClient } from '@corridor/sdk';
+
+const client = new CorridorClient({
+  apiKey: 'your-api-key',
+  environment: 'sandbox'
+});
+
+const payment = await client.payments.createSplit({
+  amount: 100.00,
+  currency: 'USDC',
+  recipients: [
+    { walletId: 'wallet-1', percentage: 60 },
+    { walletId: 'wallet-2', percentage: 40 }
+  ]
+});
+```
+
+### Browser Usage
+
+```html
+<script src="https://unpkg.com/@corridor/sdk@latest/dist/corridor.min.js"></script>
+<script>
+  const client = new Corridor.CorridorClient({
+    apiKey: 'your-api-key',
+    environment: 'sandbox'
+  });
+  
+  client.goals.create({
+    title: 'Crowdfunding Goal',
+    targetAmount: 1000,
+    currency: 'USDC'
+  }).then(goal => console.log('Goal created:', goal.id));
+</script>
+```
+
+## Configuration
+
+```typescript
+const client = new CorridorClient({
+  apiKey: process.env.PAYDAY_API_KEY!,
+  environment: process.env.NODE_ENV === 'production' ? 'production' : 'sandbox',
+  timeout: 30000,
+  retryConfig: {
+    maxRetries: 3,
+    retryDelay: 1000
+  }
+});
+```
+
+## Core Services
+
+### Payments
+
+```typescript
+const payment = await client.payments.createSplit({
+  amount: 500.00,
+  currency: 'USDC',
+  recipients: [
+    { walletId: 'wallet-1', percentage: 50 },
+    { walletId: 'wallet-2', percentage: 30 },
+    { walletId: 'wallet-3', percentage: 20 }
+  ]
+});
+```
+
+### Social Goals
+
+```typescript
+const goal = await client.goals.create({
+  title: 'Team Building Event',
+  targetAmount: 2000.00,
+  currency: 'USDC'
+});
+
+const contribution = await client.goals.contribute(goal.id, {
+  contributorName: 'Alice',
+  amount: 50.00
+});
+```
+
+### Wallets
+
+```typescript
+const balance = await client.wallets.getBalance('wallet-id');
+const wallets = await client.wallets.list({ accountId: 'account-id' });
+```
+
+## React Integration
+
+```tsx
+import { CorridorProvider, useCorridor, usePayments, useGoals } from '@corridor/react';
+
+function App() {
+  return (
+    <CorridorProvider apiKey="your-api-key" environment="sandbox">
+      <YourApp />
+    </CorridorProvider>
+  );
+}
+
+function PaymentComponent() {
+  const { createSplitPayment } = usePayments();
+  
+  const handlePayment = async () => {
+    const payment = await createSplitPayment({
+      amount: 100,
+      currency: 'USDC',
+      recipients: [{ walletId: 'w1', percentage: 100 }]
+    });
+  };
+  
+  return <button onClick={handlePayment}>Pay</button>;
+}
+```
+
+## Next.js API Routes
+
+```typescript
+// pages/api/payments.ts
+import { CorridorClient } from '@corridor/sdk';
+
+const client = new CorridorClient({
+  apiKey: process.env.PAYDAY_API_KEY!
+});
+
+export default async function handler(req, res) {
+  const payment = await client.payments.createSplit(req.body);
+  res.status(201).json(payment);
+}
+```
+
+## Webhooks
+
+```typescript
+import { verifyWebhookSignature, parseWebhookEvent } from '@corridor/sdk';
+
+export default async function handler(req, res) {
+  const signature = req.headers['x-corridor-signature'];
+  const isValid = verifyWebhookSignature(
+    JSON.stringify(req.body),
+    signature,
+    process.env.WEBHOOK_SECRET!
+  );
+  
+  if (!isValid) return res.status(401).json({ error: 'Invalid' });
+  
+  const event = parseWebhookEvent(req.body);
+  // Handle event.type
+  
+  res.json({ received: true });
+}
+```
+
+## Error Handling
+
+```typescript
+import { ValidationError, AuthenticationError, RateLimitError } from '@corridor/sdk';
+
+try {
+  await client.payments.createSplit({ amount: 100, recipients: [] });
+} catch (error) {
+  if (error instanceof ValidationError) {
+    console.log('Validation failed:', error.message);
+  } else if (error instanceof AuthenticationError) {
+    console.log('Auth failed');
+  }
+}
+```
+
+## TypeScript Types
+
+```typescript
+import { SplitPaymentRequest, PaymentStatus, Goal, Currency } from '@corridor/sdk';
+
+const request: SplitPaymentRequest = {
+  amount: 100,
+  currency: Currency.USDC,
+  recipients: []
+};
+```

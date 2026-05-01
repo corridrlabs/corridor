@@ -1,0 +1,75 @@
+# Corridor Documentation
+
+Welcome to the Corridor API documentation. Corridor is a modern payment infrastructure platform for building fintech applications with social payments, earned wage access, and crypto on/off-ramps.
+
+<div style={{ 
+  background: 'linear-gradient(135deg, rgba(153, 69, 255, 0.15) 0%, rgba(20, 241, 149, 0.15) 100%)',
+  borderRadius: '12px',
+  padding: '2rem',
+  margin: '2rem 0',
+  textAlign: 'center',
+  border: '1px solid #222222'
+}}>
+
+## Build the Future of Payments
+
+Everything you need to integrate Corridor payments into your application.
+
+<div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1.5rem', flexWrap: 'wrap' }}>
+
+<a href="/docs/quickstart" style={{
+  background: '#9945FF',
+  color: '#FFFFFF',
+  padding: '0.75rem 1.5rem',
+  borderRadius: '8px',
+  fontWeight: 600,
+  textDecoration: 'none',
+  transition: 'all 0.2s'
+}}>
+Get Started
+</a>
+
+<a href="/docs/api/payments" style={{
+  background: 'transparent',
+  color: '#FFFFFF',
+  padding: '0.75rem 1.5rem',
+  borderRadius: '8px',
+  fontWeight: 600,
+  textDecoration: 'none',
+  border: '1px solid #222222',
+  transition: 'all 0.2s'
+}}>
+API Reference
+</a>
+
+</div>
+
+</div>
+
+---
+
+## Quick Links
+
+| Feature | Description |
+|---------|-------------|
+| [Quickstart](/docs/quickstart) | Get up and running in minutes |
+| [Authentication](/docs/authentication) | API keys and token flows |
+| [Webhooks](/docs/webhooks) | Event-driven integrations |
+| [Social Goals](/docs/api/social-goals) | Crowdfunding features |
+| [Earned Wage Access](/docs/api/ewa) | On-demand pay |
+
+## Why Corridor?
+
+- **Multi-rail payments** - USDC, mobile money, bank transfers
+- **Social features** - Goal-based crowdfunding with contributions
+- **EWA Integration** - Real-time earned wage access
+- **Developer-first** - Excellent DX with SDKs and webhooks
+
+```typescript
+// Example: Create a payment link
+const link = await corridor.paymentLinks.create({
+  title: "Donation for cause",
+  amount: 25.00,
+  currency: "USD"
+});
+```

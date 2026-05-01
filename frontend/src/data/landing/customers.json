@@ -1,0 +1,40 @@
+{
+    "handle": "customers",
+    "title": "customers.mdx",
+    "icon": "Users",
+    "testimonials": [
+        {
+            "company": "TechCorp Kenya",
+            "logo": "🏢",
+            "quote": "Corridor reduced our payment integration time from 3 months to 2 weeks. Game changer!",
+            "author": "Jane Doe",
+            "role": "CTO",
+            "metrics": {
+                "label": "Integration time reduced",
+                "value": "85%"
+            }
+        },
+        {
+            "company": "E-Commerce Plus",
+            "logo": "🛒",
+            "quote": "The unified API and automatic failover saved us countless hours of debugging.",
+            "author": "John Smith",
+            "role": "Engineering Lead",
+            "metrics": {
+                "label": "Uptime improved",
+                "value": "99.9%"
+            }
+        },
+        {
+            "company": "FinTech Innovations",
+            "logo": "💳",
+            "quote": "Real-time monitoring and analytics give us insights we never had before.",
+            "author": "Sarah Johnson",
+            "role": "Product Manager",
+            "metrics": {
+                "label": "Revenue increase",
+                "value": "45%"
+            }
+        }
+    ]
+}
